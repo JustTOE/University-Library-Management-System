@@ -1,0 +1,41 @@
+services:
+  postgres_database:
+    container_name: postgres_db
+    image: postgres:18-alpine
+    ports:
+      - "5431:5432"
+    environment:
+      - POSTGRES_USER=db_user
+      - POSTGRES_PASSWORD=db_password
+      - POSTGRES_DB=ulms
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - postgres-tier
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U db_user -d ulms" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  spring-boot-app:
+    container_name: spring_boot_app
+    build: src/ulms
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/ulms
+      - SPRING_DATASOURCE_USERNAME=db_user
+      - SPRING_DATASOURCE_PASSWORD=db_password
+    networks:
+      - postgres-tier
+    restart: unless-stopped
+    depends_on:
+      - postgres_database
+
+volumes:
+  postgres-data: {}
+
+networks:
+  postgres-tier:
+    driver: bridge
