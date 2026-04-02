@@ -2,31 +2,44 @@ package dev.tmmc.ulms.objects.entities;
 
 import java.sql.Date;
 import java.time.OffsetDateTime;
+import jakarta.persistence.*;
+import dev.tmmc.ulms.objects.entities.enums.*;
 
+@Entity
+@Table(name = "reservation")
 public class Reservation {
-    private int id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     private OffsetDateTime reserved_at;
     private Date expiry_date;
-    private String status;
-    private int student_id;
-    private Integer book_id;
+
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "book_id")
+    private Book book;
 
     public Reservation() {}
 
-    public Reservation(int id, OffsetDateTime reserved_at, Date expiry_date, String status, int student_id, Integer book_id) {
+    public Reservation(Integer id, OffsetDateTime reserved_at, Date expiry_date, ReservationStatus status, User user, Book book) {
         this.id = id;
         this.reserved_at = reserved_at;
         this.expiry_date = expiry_date;
         this.status = status;
-        this.student_id = student_id;
-        this.book_id = book_id;
+        this.user = user;
+        this.book = book;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -46,27 +59,27 @@ public class Reservation {
         this.expiry_date = expiry_date;
     }
 
-    public String getStatus() {
+    public ReservationStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ReservationStatus status) {
         this.status = status;
     }
 
-    public int getStudent_id() {
-        return student_id;
+    public User getUser() {
+        return user;
     }
 
-    public void setStudent_id(int student_id) {
-        this.student_id = student_id;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public Integer getBook_id() {
-        return book_id;
+    public Book getBook() {
+        return book;
     }
 
-    public void setBook_id(Integer book_id) {
-        this.book_id = book_id;
+    public void setBook(Book book) {
+        this.book = book;
     }
 }

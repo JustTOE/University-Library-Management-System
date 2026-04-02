@@ -1,0 +1,1 @@
+-- Unified users table introduced in V1. Admin-specific table removed.

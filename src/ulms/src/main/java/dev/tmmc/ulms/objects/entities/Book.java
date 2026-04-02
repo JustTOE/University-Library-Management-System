@@ -1,12 +1,12 @@
 package dev.tmmc.ulms.objects.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "book")
 public class Book {
-    private int id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     private String title;
     private String author;
     private String isbn;
@@ -18,7 +18,7 @@ public class Book {
 
     public Book() {}
 
-    public Book(int id, String title, String author, String isbn, Integer publication_year, String subject, int total_copies, int available_copies, String shelf_number) {
+    public Book(Integer id, String title, String author, String isbn, Integer publication_year, String subject, int total_copies, int available_copies, String shelf_number) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -30,11 +30,11 @@ public class Book {
         this.shelf_number = shelf_number;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

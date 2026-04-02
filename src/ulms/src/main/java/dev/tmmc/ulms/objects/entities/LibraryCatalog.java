@@ -1,25 +1,29 @@
 package dev.tmmc.ulms.objects.entities;
 
 import java.sql.Date;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "library_catalog")
 public class LibraryCatalog {
-    private int id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     private int total_books;
     private Date last_updated;
 
     public LibraryCatalog() {}
 
-    public LibraryCatalog(int id, int total_books, Date last_updated) {
+    public LibraryCatalog(Integer id, int total_books, Date last_updated) {
         this.id = id;
         this.total_books = total_books;
         this.last_updated = last_updated;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

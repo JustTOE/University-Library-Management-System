@@ -1,0 +1,1 @@
+-- Unified users table introduced in V1. Student-specific table removed.

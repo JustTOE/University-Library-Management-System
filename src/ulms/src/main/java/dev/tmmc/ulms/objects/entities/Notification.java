@@ -1,33 +1,48 @@
 package dev.tmmc.ulms.objects.entities;
 
 import java.time.OffsetDateTime;
+import jakarta.persistence.*;
+import dev.tmmc.ulms.objects.entities.enums.*;
 
+@Entity
+@Table(name = "notification")
 public class Notification {
-    private int id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     private OffsetDateTime sent_date;
     private String message;
-    private String type;
-    private Integer loan_id;
-    private int student_id;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
+
+    @ManyToOne
+    @JoinColumn(name = "loan_id")
+    private Loan loan;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Enumerated(EnumType.STRING)
+    private NotificationStatus status;
 
     public Notification() {}
 
-    public Notification(int id, OffsetDateTime sent_date, String message, String type, Integer loan_id, int student_id, String status) {
+    public Notification(Integer id, OffsetDateTime sent_date, String message, NotificationType type, Loan loan, User user, NotificationStatus status) {
         this.id = id;
         this.sent_date = sent_date;
         this.message = message;
         this.type = type;
-        this.loan_id = loan_id;
-        this.student_id = student_id;
+        this.loan = loan;
+        this.user = user;
         this.status = status;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -47,35 +62,35 @@ public class Notification {
         this.message = message;
     }
 
-    public String getType() {
+    public NotificationType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(NotificationType type) {
         this.type = type;
     }
 
-    public Integer getLoan_id() {
-        return loan_id;
+    public Loan getLoan() {
+        return loan;
     }
 
-    public void setLoan_id(Integer loan_id) {
-        this.loan_id = loan_id;
+    public void setLoan(Loan loan) {
+        this.loan = loan;
     }
 
-    public int getStudent_id() {
-        return student_id;
+    public User getUser() {
+        return user;
     }
 
-    public void setStudent_id(int student_id) {
-        this.student_id = student_id;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public String getStatus() {
+    public NotificationStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(NotificationStatus status) {
         this.status = status;
     }
 }

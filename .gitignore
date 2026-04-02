@@ -1,2 +1,14 @@
 .DS_Store
 .idea/
+.vscode/
+
+# Nested module artifacts
+**/target/
+**/.m2repo/
+src/ulms/compile_log*.txt
+src/ulms/compile_result.txt
+src/ulms/resolve_log*.txt
+
+# IDE
+**/.idea/
+**/.vscode/
