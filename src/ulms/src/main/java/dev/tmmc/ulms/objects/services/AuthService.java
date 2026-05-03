@@ -46,7 +46,7 @@ public class AuthService {
         this.jwtLifetimeMinutes = jwtLifetimeMinutes;
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = {InvalidCredentialsException.class, AccountLockedException.class, AccountInactiveException.class})
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
