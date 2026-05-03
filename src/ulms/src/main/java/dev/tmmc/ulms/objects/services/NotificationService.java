@@ -1,11 +1,13 @@
 package dev.tmmc.ulms.objects.services;
 
+import dev.tmmc.ulms.objects.dto.response.NotificationResponse;
 import dev.tmmc.ulms.objects.entities.Loan;
 import dev.tmmc.ulms.objects.entities.Notification;
 import dev.tmmc.ulms.objects.entities.User;
 import dev.tmmc.ulms.objects.entities.enums.NotificationStatus;
 import dev.tmmc.ulms.objects.entities.enums.NotificationType;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
+import dev.tmmc.ulms.objects.mapper.NotificationMapper;
 import dev.tmmc.ulms.objects.repositories.NotificationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,12 +46,24 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + notificationId));
         notification.setStatus(NotificationStatus.ACKNOWLEDGED);
-        return notification;
+        return notificationRepository.save(notification);
+    }
+
+    @Transactional
+    public NotificationResponse markAcknowledgedAsResponse(Integer notificationId) {
+        return NotificationMapper.toResponse(markAcknowledged(notificationId));
     }
 
     @Transactional(readOnly = true)
     public List<Notification> findByUser(User user) {
         return notificationRepository.findByUser(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NotificationResponse> findByUserAsResponse(User user) {
+        return notificationRepository.findByUser(user).stream()
+                .map(NotificationMapper::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -68,7 +82,19 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<NotificationResponse> findByIdAsResponse(Integer id) {
+        return notificationRepository.findById(id).map(NotificationMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public List<Notification> findAll() {
         return notificationRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<NotificationResponse> findAllAsResponse() {
+        return notificationRepository.findAll().stream()
+                .map(NotificationMapper::toResponse)
+                .toList();
     }
 }

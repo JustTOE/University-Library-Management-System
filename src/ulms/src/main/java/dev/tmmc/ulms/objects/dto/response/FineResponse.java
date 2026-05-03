@@ -9,7 +9,6 @@ public record FineResponse(
         Integer id,
         String fineId,
         Integer loanId,
-        String loanLoanId,
         BigDecimal amount,
         Date calculatedDate,
         FineStatus status

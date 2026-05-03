@@ -28,7 +28,6 @@ public class UserMapper {
         user.setStaffId(request.staffId());
         user.setPhone(request.phone());
         user.setRole(request.role());
-        user.setPasswordHash(request.password());
         return user;
     }
 }

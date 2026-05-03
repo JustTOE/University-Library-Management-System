@@ -1,5 +1,6 @@
 package dev.tmmc.ulms.objects.services;
 
+import dev.tmmc.ulms.objects.dto.response.PaymentResponse;
 import dev.tmmc.ulms.objects.entities.Fine;
 import dev.tmmc.ulms.objects.entities.Payment;
 import dev.tmmc.ulms.objects.entities.User;
@@ -8,6 +9,7 @@ import dev.tmmc.ulms.objects.entities.enums.PaymentMethod;
 import dev.tmmc.ulms.objects.entities.enums.PaymentStatus;
 import dev.tmmc.ulms.objects.exceptions.LoanStateException;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
+import dev.tmmc.ulms.objects.mapper.PaymentMapper;
 import dev.tmmc.ulms.objects.repositories.FineRepository;
 import dev.tmmc.ulms.objects.repositories.PaymentRepository;
 import org.springframework.data.domain.Page;
@@ -49,13 +51,26 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.COMPLETED);
 
         fine.setStatus(FineStatus.PAID);
+        fineRepository.save(fine);
 
         return paymentRepository.save(payment);
+    }
+
+    @Transactional
+    public PaymentResponse processPaymentAsResponse(Integer fineId, PaymentMethod method, User user) {
+        return PaymentMapper.toResponse(processPayment(fineId, method, user));
     }
 
     @Transactional(readOnly = true)
     public List<Payment> findByUser(User user) {
         return paymentRepository.findByUser(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentResponse> findByUserAsResponse(User user) {
+        return paymentRepository.findByUser(user).stream()
+                .map(PaymentMapper::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -69,7 +84,19 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<PaymentResponse> findByIdAsResponse(Integer id) {
+        return paymentRepository.findById(id).map(PaymentMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public List<Payment> findAll() {
         return paymentRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentResponse> findAllAsResponse() {
+        return paymentRepository.findAll().stream()
+                .map(PaymentMapper::toResponse)
+                .toList();
     }
 }

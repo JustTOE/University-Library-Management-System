@@ -49,6 +49,7 @@ class PaymentServiceTest {
                 BigDecimal.valueOf(12));
 
         when(fineRepository.findById(3)).thenReturn(Optional.of(fine));
+        when(fineRepository.save(any(Fine.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Payment payment = paymentService.processPayment(3, PaymentMethod.CARD, user);

@@ -14,11 +14,11 @@ public class BookMapper {
                 b.getTitle(),
                 b.getAuthor(),
                 b.getIsbn(),
-                b.getPublication_year(),
+                b.getPublicationYear(),
                 b.getSubject(),
-                b.getTotal_copies(),
-                b.getAvailable_copies(),
-                b.getShelf_number()
+                b.getTotalCopies(),
+                b.getAvailableCopies(),
+                b.getShelfNumber()
         );
     }
 
@@ -27,11 +27,11 @@ public class BookMapper {
         b.setTitle(r.title());
         b.setAuthor(r.author());
         b.setIsbn(r.isbn());
-        b.setPublication_year(r.publicationYear());
+        b.setPublicationYear(r.publicationYear());
         b.setSubject(r.subject());
-        b.setTotal_copies(r.totalCopies());
-        b.setAvailable_copies(r.availableCopies());
-        b.setShelf_number(r.shelfNumber());
+        b.setTotalCopies(r.totalCopies());
+        b.setAvailableCopies(r.availableCopies());
+        b.setShelfNumber(r.shelfNumber());
         return b;
     }
 }

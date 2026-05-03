@@ -1,9 +1,11 @@
 package dev.tmmc.ulms.web;
 
 import dev.tmmc.ulms.objects.controllers.LoanController;
+import dev.tmmc.ulms.objects.dto.response.LoanResponse;
 import dev.tmmc.ulms.objects.entities.Loan;
 import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
 import dev.tmmc.ulms.objects.exceptions.BookNotAvailableException;
+import dev.tmmc.ulms.objects.mapper.LoanMapper;
 import dev.tmmc.ulms.objects.services.LoanService;
 import dev.tmmc.ulms.objects.services.UserService;
 import dev.tmmc.ulms.support.TestFixtures;
@@ -41,8 +43,9 @@ class LoanControllerTest {
     void borrowReturnsMappedLoanResponse() throws Exception {
         Loan loan = TestFixtures.loan(TestFixtures.user(), TestFixtures.book(1, 0), LoanStatus.ACTIVE, LocalDate.now().plusDays(7));
         loan.setId(5);
+        LoanResponse response = LoanMapper.toResponse(loan);
 
-        when(loanService.borrowBook(1, 2)).thenReturn(loan);
+        when(loanService.borrowBookAsResponse(1, 2)).thenReturn(response);
 
         mockMvc.perform(post("/api/loans/borrow")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -74,7 +77,7 @@ class LoanControllerTest {
 
     @Test
     void borrowReturnsConflictWhenBookCannotBeBorrowed() throws Exception {
-        when(loanService.borrowBook(1, 2)).thenThrow(new BookNotAvailableException("Book is not available"));
+        when(loanService.borrowBookAsResponse(1, 2)).thenThrow(new BookNotAvailableException("Book is not available"));
 
         mockMvc.perform(post("/api/loans/borrow")
                         .contentType(MediaType.APPLICATION_JSON)

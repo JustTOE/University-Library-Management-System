@@ -1,10 +1,12 @@
 package dev.tmmc.ulms.objects.controllers;
 
+import dev.tmmc.ulms.objects.dto.request.CreateLibraryCatalogRequest;
 import dev.tmmc.ulms.objects.dto.response.LibraryCatalogResponse;
 import dev.tmmc.ulms.objects.entities.LibraryCatalog;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.mapper.LibraryCatalogMapper;
 import dev.tmmc.ulms.objects.services.LibraryCatalogService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,15 +37,17 @@ public class LibraryCatalogController {
     }
 
     @PostMapping
-    public LibraryCatalogResponse create(@RequestBody LibraryCatalog catalog) {
+    public LibraryCatalogResponse create(@Valid @RequestBody CreateLibraryCatalogRequest request) {
+        LibraryCatalog catalog = LibraryCatalogMapper.toEntity(request);
         return LibraryCatalogMapper.toResponse(libraryCatalogService.save(catalog));
     }
 
     @PutMapping("/{id}")
     public LibraryCatalogResponse update(@PathVariable Integer id,
-                                         @RequestBody LibraryCatalog catalog) {
+                                         @Valid @RequestBody CreateLibraryCatalogRequest request) {
         libraryCatalogService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Catalog not found: " + id));
+        LibraryCatalog catalog = LibraryCatalogMapper.toEntity(request);
         catalog.setId(id);
         return LibraryCatalogMapper.toResponse(libraryCatalogService.save(catalog));
     }

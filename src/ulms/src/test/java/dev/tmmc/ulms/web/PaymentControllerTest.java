@@ -1,6 +1,7 @@
 package dev.tmmc.ulms.web;
 
 import dev.tmmc.ulms.objects.controllers.PaymentController;
+import dev.tmmc.ulms.objects.dto.response.PaymentResponse;
 import dev.tmmc.ulms.objects.entities.Payment;
 import dev.tmmc.ulms.objects.entities.User;
 import dev.tmmc.ulms.objects.entities.enums.FineStatus;
@@ -8,6 +9,7 @@ import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
 import dev.tmmc.ulms.objects.entities.enums.PaymentMethod;
 import dev.tmmc.ulms.objects.entities.enums.PaymentStatus;
 import dev.tmmc.ulms.objects.exceptions.LoanStateException;
+import dev.tmmc.ulms.objects.mapper.PaymentMapper;
 import dev.tmmc.ulms.objects.services.PaymentService;
 import dev.tmmc.ulms.objects.services.UserService;
 import dev.tmmc.ulms.support.TestFixtures;
@@ -55,9 +57,10 @@ class PaymentControllerTest {
                 PaymentMethod.CARD,
                 PaymentStatus.COMPLETED);
         payment.setId(4);
+        PaymentResponse response = PaymentMapper.toResponse(payment);
 
         when(userService.findById(1)).thenReturn(Optional.of(user));
-        when(paymentService.processPayment(2, PaymentMethod.CARD, user)).thenReturn(payment);
+        when(paymentService.processPaymentAsResponse(2, PaymentMethod.CARD, user)).thenReturn(response);
 
         mockMvc.perform(post("/api/payments")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,7 +96,7 @@ class PaymentControllerTest {
     void processPaymentReturnsConflictWhenFineIsAlreadyPaid() throws Exception {
         User user = TestFixtures.user();
         when(userService.findById(1)).thenReturn(Optional.of(user));
-        when(paymentService.processPayment(2, PaymentMethod.CARD, user))
+        when(paymentService.processPaymentAsResponse(2, PaymentMethod.CARD, user))
                 .thenThrow(new LoanStateException("Fine is already paid."));
 
         mockMvc.perform(post("/api/payments")
@@ -105,7 +108,7 @@ class PaymentControllerTest {
 
     @Test
     void getByIdReturns404WhenPaymentIsMissing() throws Exception {
-        when(paymentService.findById(45)).thenReturn(Optional.empty());
+        when(paymentService.findByIdAsResponse(45)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/payments/45"))
                 .andExpect(status().isNotFound())

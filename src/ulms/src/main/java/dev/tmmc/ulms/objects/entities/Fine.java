@@ -20,7 +20,7 @@ public class Fine {
     @Enumerated(EnumType.STRING)
     private FineStatus status;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "loan_id", nullable = false)
     private Loan loan;
 

@@ -1,5 +1,6 @@
 package dev.tmmc.ulms.objects.services;
 
+import dev.tmmc.ulms.objects.dto.response.LoanResponse;
 import dev.tmmc.ulms.objects.entities.Book;
 import dev.tmmc.ulms.objects.entities.Fine;
 import dev.tmmc.ulms.objects.entities.Loan;
@@ -12,6 +13,7 @@ import dev.tmmc.ulms.objects.exceptions.BookNotAvailableException;
 import dev.tmmc.ulms.objects.exceptions.LoanStateException;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.exceptions.UnpaidFinesException;
+import dev.tmmc.ulms.objects.mapper.LoanMapper;
 import dev.tmmc.ulms.objects.repositories.BookRepository;
 import dev.tmmc.ulms.objects.repositories.FineRepository;
 import dev.tmmc.ulms.objects.repositories.LoanRepository;
@@ -26,6 +28,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -83,6 +86,11 @@ public class LoanService {
     }
 
     @Transactional
+    public LoanResponse borrowBookAsResponse(Integer userId, Integer bookId) {
+        return LoanMapper.toResponse(borrowBook(userId, bookId));
+    }
+
+    @Transactional
     public Loan returnBook(Integer loanId) {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new ResourceNotFoundException("Loan not found: " + loanId));
@@ -100,6 +108,7 @@ public class LoanService {
         if (!pendingReservations.isEmpty()) {
             Reservation next = pendingReservations.get(0);
             next.setStatus(ReservationStatus.FULFILLED);
+            reservationRepository.save(next);
         }
 
         LocalDate dueDate = loan.getDue_date().toLocalDate();
@@ -117,6 +126,11 @@ public class LoanService {
         }
 
         return loanRepository.save(loan);
+    }
+
+    @Transactional
+    public LoanResponse returnBookAsResponse(Integer loanId) {
+        return LoanMapper.toResponse(returnBook(loanId));
     }
 
     @Transactional
@@ -144,6 +158,11 @@ public class LoanService {
         return loanRepository.save(loan);
     }
 
+    @Transactional
+    public LoanResponse renewLoanAsResponse(Integer loanId) {
+        return LoanMapper.toResponse(renewLoan(loanId));
+    }
+
     @Transactional(readOnly = true)
     public List<Loan> findByUser(User user) {
         return loanRepository.findByUser(user);
@@ -152,6 +171,13 @@ public class LoanService {
     @Transactional(readOnly = true)
     public List<Loan> findByUserWithDetails(User user) {
         return loanRepository.findByUserWithDetails(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LoanResponse> findByUserWithDetailsAsResponse(User user) {
+        return loanRepository.findByUserWithDetails(user).stream()
+                .map(LoanMapper::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -165,12 +191,29 @@ public class LoanService {
     }
 
     @Transactional(readOnly = true)
-    public java.util.Optional<Loan> findById(Integer id) {
+    public Page<LoanResponse> findByUserAsResponse(User user, Pageable pageable) {
+        return loanRepository.findByUser(user, pageable).map(LoanMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Loan> findById(Integer id) {
         return loanRepository.findById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<LoanResponse> findByIdAsResponse(Integer id) {
+        return loanRepository.findById(id).map(LoanMapper::toResponse);
     }
 
     @Transactional(readOnly = true)
     public List<Loan> findAll() {
         return loanRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<LoanResponse> findAllAsResponse() {
+        return loanRepository.findAll().stream()
+                .map(LoanMapper::toResponse)
+                .toList();
     }
 }

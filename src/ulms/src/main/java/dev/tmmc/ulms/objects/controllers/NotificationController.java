@@ -1,9 +1,7 @@
 package dev.tmmc.ulms.objects.controllers;
 
 import dev.tmmc.ulms.objects.dto.response.NotificationResponse;
-import dev.tmmc.ulms.objects.entities.Notification;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
-import dev.tmmc.ulms.objects.mapper.NotificationMapper;
 import dev.tmmc.ulms.objects.services.NotificationService;
 import dev.tmmc.ulms.objects.services.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -26,29 +24,23 @@ public class NotificationController {
     @GetMapping("/user/{userId}")
     public List<NotificationResponse> getByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
-                .map(user -> notificationService.findByUser(user).stream()
-                        .map(NotificationMapper::toResponse)
-                        .toList())
+                .map(notificationService::findByUserAsResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
     }
 
     @GetMapping("/{id}")
     public NotificationResponse getById(@PathVariable Integer id) {
-        Notification notification = notificationService.findById(id)
+        return notificationService.findByIdAsResponse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + id));
-        return NotificationMapper.toResponse(notification);
     }
 
     @PutMapping("/{id}/acknowledge")
     public NotificationResponse acknowledge(@PathVariable Integer id) {
-        Notification notification = notificationService.markAcknowledged(id);
-        return NotificationMapper.toResponse(notification);
+        return notificationService.markAcknowledgedAsResponse(id);
     }
 
     @GetMapping
     public List<NotificationResponse> getAll() {
-        return notificationService.findAll().stream()
-                .map(NotificationMapper::toResponse)
-                .toList();
+        return notificationService.findAllAsResponse();
     }
 }

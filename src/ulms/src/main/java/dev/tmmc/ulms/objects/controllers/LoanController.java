@@ -2,9 +2,7 @@ package dev.tmmc.ulms.objects.controllers;
 
 import dev.tmmc.ulms.objects.dto.request.BorrowRequest;
 import dev.tmmc.ulms.objects.dto.response.LoanResponse;
-import dev.tmmc.ulms.objects.entities.Loan;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
-import dev.tmmc.ulms.objects.mapper.LoanMapper;
 import dev.tmmc.ulms.objects.services.LoanService;
 import dev.tmmc.ulms.objects.services.UserService;
 import jakarta.validation.Valid;
@@ -28,28 +26,23 @@ public class LoanController {
 
     @PostMapping("/borrow")
     public LoanResponse borrow(@Valid @RequestBody BorrowRequest request) {
-        Loan loan = loanService.borrowBook(request.userId(), request.bookId());
-        return LoanMapper.toResponse(loan);
+        return loanService.borrowBookAsResponse(request.userId(), request.bookId());
     }
 
     @PutMapping("/{id}/return")
     public LoanResponse returnBook(@PathVariable Integer id) {
-        Loan loan = loanService.returnBook(id);
-        return LoanMapper.toResponse(loan);
+        return loanService.returnBookAsResponse(id);
     }
 
     @PutMapping("/{id}/renew")
     public LoanResponse renew(@PathVariable Integer id) {
-        Loan loan = loanService.renewLoan(id);
-        return LoanMapper.toResponse(loan);
+        return loanService.renewLoanAsResponse(id);
     }
 
     @GetMapping("/user/{userId}")
     public List<LoanResponse> getByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
-                .map(user -> loanService.findByUserWithDetails(user).stream()
-                        .map(LoanMapper::toResponse)
-                        .toList())
+                .map(loanService::findByUserWithDetailsAsResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
     }
 
@@ -57,22 +50,18 @@ public class LoanController {
     public Page<LoanResponse> getByUserPaged(@PathVariable Integer userId,
                                              Pageable pageable) {
         return userService.findById(userId)
-                .map(user -> loanService.findByUser(user, pageable)
-                        .map(LoanMapper::toResponse))
+                .map(user -> loanService.findByUserAsResponse(user, pageable))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
     }
 
     @GetMapping("/{id}")
     public LoanResponse getById(@PathVariable Integer id) {
-        Loan loan = loanService.findById(id)
+        return loanService.findByIdAsResponse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Loan not found: " + id));
-        return LoanMapper.toResponse(loan);
     }
 
     @GetMapping
     public List<LoanResponse> getAll() {
-        return loanService.findAll().stream()
-                .map(LoanMapper::toResponse)
-                .toList();
+        return loanService.findAllAsResponse();
     }
 }

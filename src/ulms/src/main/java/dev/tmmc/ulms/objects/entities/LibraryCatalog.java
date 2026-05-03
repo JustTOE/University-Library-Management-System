@@ -6,17 +6,22 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "library_catalog")
 public class LibraryCatalog {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private int total_books;
-    private Date last_updated;
+
+    @Column(name = "total_books", nullable = false)
+    private int totalBooks;
+
+    @Column(name = "last_updated", nullable = false)
+    private Date lastUpdated;
 
     public LibraryCatalog() {}
 
-    public LibraryCatalog(Integer id, int total_books, Date last_updated) {
+    public LibraryCatalog(Integer id, int totalBooks, Date lastUpdated) {
         this.id = id;
-        this.total_books = total_books;
-        this.last_updated = last_updated;
+        this.totalBooks = totalBooks;
+        this.lastUpdated = lastUpdated;
     }
 
     public Integer getId() {
@@ -27,19 +32,19 @@ public class LibraryCatalog {
         this.id = id;
     }
 
-    public int getTotal_books() {
-        return total_books;
+    public int getTotalBooks() {
+        return totalBooks;
     }
 
-    public void setTotal_books(int total_books) {
-        this.total_books = total_books;
+    public void setTotalBooks(int totalBooks) {
+        this.totalBooks = totalBooks;
     }
 
-    public Date getLast_updated() {
-        return last_updated;
+    public Date getLastUpdated() {
+        return lastUpdated;
     }
 
-    public void setLast_updated(Date last_updated) {
-        this.last_updated = last_updated;
+    public void setLastUpdated(Date lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 }

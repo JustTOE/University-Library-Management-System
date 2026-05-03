@@ -76,6 +76,7 @@ class ReservationServiceTest {
     void cancelReservationMarksEntityAsCancelled() {
         Reservation reservation = TestFixtures.reservation(TestFixtures.user(), TestFixtures.book(1, 0), ReservationStatus.ACTIVE);
         when(reservationRepository.findById(4)).thenReturn(Optional.of(reservation));
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Reservation result = reservationService.cancelReservation(4);
 

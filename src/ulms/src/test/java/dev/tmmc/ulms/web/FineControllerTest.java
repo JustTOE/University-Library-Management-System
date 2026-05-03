@@ -1,10 +1,12 @@
 package dev.tmmc.ulms.web;
 
 import dev.tmmc.ulms.objects.controllers.FineController;
+import dev.tmmc.ulms.objects.dto.response.FineResponse;
 import dev.tmmc.ulms.objects.entities.Fine;
 import dev.tmmc.ulms.objects.entities.User;
 import dev.tmmc.ulms.objects.entities.enums.FineStatus;
 import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
+import dev.tmmc.ulms.objects.mapper.FineMapper;
 import dev.tmmc.ulms.objects.services.FineService;
 import dev.tmmc.ulms.objects.services.UserService;
 import dev.tmmc.ulms.support.TestFixtures;
@@ -48,9 +50,10 @@ class FineControllerTest {
                 FineStatus.UNPAID,
                 new BigDecimal("5.00"));
         fine.setId(8);
+        FineResponse response = FineMapper.toResponse(fine);
 
         when(userService.findById(1)).thenReturn(Optional.of(user));
-        when(fineService.findUnpaidByUser(user)).thenReturn(List.of(fine));
+        when(fineService.findUnpaidByUserAsResponse(user)).thenReturn(List.of(response));
 
         mockMvc.perform(get("/api/fines/user/1/unpaid"))
                 .andExpect(status().isOk())
@@ -77,8 +80,9 @@ class FineControllerTest {
                 FineStatus.PAID,
                 BigDecimal.ONE);
         fine.setId(3);
+        FineResponse response = FineMapper.toResponse(fine);
 
-        when(fineService.markAsPaid(3)).thenReturn(fine);
+        when(fineService.markAsPaidAsResponse(3)).thenReturn(response);
 
         mockMvc.perform(put("/api/fines/3/pay"))
                 .andExpect(status().isOk())
@@ -96,7 +100,7 @@ class FineControllerTest {
 
     @Test
     void getByIdReturns404WhenFineIsMissing() throws Exception {
-        when(fineService.findById(55)).thenReturn(Optional.empty());
+        when(fineService.findByIdAsResponse(55)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/fines/55"))
                 .andExpect(status().isNotFound())

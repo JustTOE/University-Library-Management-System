@@ -60,7 +60,7 @@ public class UserController {
     @PostMapping
     public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
         User user = UserMapper.toEntity(request);
-        return UserMapper.toResponse(userService.save(user));
+        return UserMapper.toResponse(userService.save(user, request.password()));
     }
 
     @PutMapping("/{id}")
@@ -69,7 +69,7 @@ public class UserController {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
         User user = UserMapper.toEntity(request);
         user.setId(id);
-        return UserMapper.toResponse(userService.save(user));
+        return UserMapper.toResponse(userService.save(user, request.password()));
     }
 
     @DeleteMapping("/{id}")

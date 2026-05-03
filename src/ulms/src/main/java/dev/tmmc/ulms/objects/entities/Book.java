@@ -5,29 +5,47 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "book")
 public class Book {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(name = "title", nullable = false)
     private String title;
+
+    @Column(name = "author")
     private String author;
+
+    @Column(name = "isbn", nullable = false, unique = true, length = 20)
     private String isbn;
-    private Integer publication_year;
+
+    @Column(name = "publication_year")
+    private Integer publicationYear;
+
+    @Column(name = "subject", nullable = false)
     private String subject;
-    private int total_copies;
-    private int available_copies;
-    private String shelf_number;
+
+    @Column(name = "total_copies", nullable = false)
+    private int totalCopies;
+
+    @Column(name = "available_copies", nullable = false)
+    private int availableCopies;
+
+    @Column(name = "shelf_number", nullable = false, length = 100)
+    private String shelfNumber;
 
     public Book() {}
 
-    public Book(Integer id, String title, String author, String isbn, Integer publication_year, String subject, int total_copies, int available_copies, String shelf_number) {
+    public Book(Integer id, String title, String author, String isbn, Integer publicationYear,
+                String subject, int totalCopies, int availableCopies, String shelfNumber) {
         this.id = id;
         this.title = title;
         this.author = author;
         this.isbn = isbn;
-        this.publication_year = publication_year;
+        this.publicationYear = publicationYear;
         this.subject = subject;
-        this.total_copies = total_copies;
-        this.available_copies = available_copies;
-        this.shelf_number = shelf_number;
+        this.totalCopies = totalCopies;
+        this.availableCopies = availableCopies;
+        this.shelfNumber = shelfNumber;
     }
 
     public Integer getId() {
@@ -62,12 +80,12 @@ public class Book {
         this.isbn = isbn;
     }
 
-    public Integer getPublication_year() {
-        return publication_year;
+    public Integer getPublicationYear() {
+        return publicationYear;
     }
 
-    public void setPublication_year(Integer publication_year) {
-        this.publication_year = publication_year;
+    public void setPublicationYear(Integer publicationYear) {
+        this.publicationYear = publicationYear;
     }
 
     public String getSubject() {
@@ -78,27 +96,27 @@ public class Book {
         this.subject = subject;
     }
 
-    public int getTotal_copies() {
-        return total_copies;
+    public int getTotalCopies() {
+        return totalCopies;
     }
 
-    public void setTotal_copies(int total_copies) {
-        this.total_copies = total_copies;
+    public void setTotalCopies(int totalCopies) {
+        this.totalCopies = totalCopies;
     }
 
-    public int getAvailable_copies() {
-        return available_copies;
+    public int getAvailableCopies() {
+        return availableCopies;
     }
 
-    public void setAvailable_copies(int available_copies) {
-        this.available_copies = available_copies;
+    public void setAvailableCopies(int availableCopies) {
+        this.availableCopies = availableCopies;
     }
 
-    public String getShelf_number() {
-        return shelf_number;
+    public String getShelfNumber() {
+        return shelfNumber;
     }
 
-    public void setShelf_number(String shelf_number) {
-        this.shelf_number = shelf_number;
+    public void setShelfNumber(String shelfNumber) {
+        this.shelfNumber = shelfNumber;
     }
 }

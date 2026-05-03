@@ -59,6 +59,7 @@ class FineServiceTest {
                 BigDecimal.TEN);
 
         when(fineRepository.findById(8)).thenReturn(Optional.of(fine));
+        when(fineRepository.save(any(Fine.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Fine result = fineService.markAsPaid(8);
 

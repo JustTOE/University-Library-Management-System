@@ -1,8 +1,10 @@
 package dev.tmmc.ulms.web;
 
 import dev.tmmc.ulms.objects.controllers.ReservationController;
+import dev.tmmc.ulms.objects.dto.response.ReservationResponse;
 import dev.tmmc.ulms.objects.entities.Reservation;
 import dev.tmmc.ulms.objects.entities.enums.ReservationStatus;
+import dev.tmmc.ulms.objects.mapper.ReservationMapper;
 import dev.tmmc.ulms.objects.services.ReservationService;
 import dev.tmmc.ulms.objects.services.UserService;
 import dev.tmmc.ulms.support.TestFixtures;
@@ -40,8 +42,9 @@ class ReservationControllerTest {
     void createReturnsMappedReservation() throws Exception {
         Reservation reservation = TestFixtures.reservation(TestFixtures.user(), TestFixtures.book(1, 0), ReservationStatus.ACTIVE);
         reservation.setId(6);
+        ReservationResponse response = ReservationMapper.toResponse(reservation);
 
-        when(reservationService.createReservation(1, 2)).thenReturn(reservation);
+        when(reservationService.createReservationAsResponse(1, 2)).thenReturn(response);
 
         mockMvc.perform(post("/api/reservations")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -65,8 +68,9 @@ class ReservationControllerTest {
     void cancelReturnsCancelledReservation() throws Exception {
         Reservation reservation = TestFixtures.reservation(TestFixtures.user(), TestFixtures.book(1, 0), ReservationStatus.CANCELLED);
         reservation.setId(10);
+        ReservationResponse response = ReservationMapper.toResponse(reservation);
 
-        when(reservationService.cancelReservation(10)).thenReturn(reservation);
+        when(reservationService.cancelReservationAsResponse(10)).thenReturn(response);
 
         mockMvc.perform(delete("/api/reservations/10"))
                 .andExpect(status().isOk())
@@ -84,7 +88,7 @@ class ReservationControllerTest {
 
     @Test
     void getByIdReturns404WhenReservationIsMissing() throws Exception {
-        when(reservationService.findById(12)).thenReturn(Optional.empty());
+        when(reservationService.findByIdAsResponse(12)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/reservations/12"))
                 .andExpect(status().isNotFound())

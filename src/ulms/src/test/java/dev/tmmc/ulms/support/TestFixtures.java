@@ -41,11 +41,11 @@ public final class TestFixtures {
         book.setAuthor("A. Author");
         String rawIsbn = UUID.randomUUID().toString().replace("-", "");
         book.setIsbn(("ISBN" + rawIsbn).substring(0, 16));
-        book.setPublication_year(2024);
+        book.setPublicationYear(2024);
         book.setSubject("Computing");
-        book.setTotal_copies(totalCopies);
-        book.setAvailable_copies(availableCopies);
-        book.setShelf_number("A1");
+        book.setTotalCopies(totalCopies);
+        book.setAvailableCopies(availableCopies);
+        book.setShelfNumber("A1");
         return book;
     }
 

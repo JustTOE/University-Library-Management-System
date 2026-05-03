@@ -1,9 +1,7 @@
 package dev.tmmc.ulms.objects.controllers;
 
 import dev.tmmc.ulms.objects.dto.response.FineResponse;
-import dev.tmmc.ulms.objects.entities.Fine;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
-import dev.tmmc.ulms.objects.mapper.FineMapper;
 import dev.tmmc.ulms.objects.services.FineService;
 import dev.tmmc.ulms.objects.services.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -26,18 +24,14 @@ public class FineController {
     @GetMapping("/user/{userId}")
     public List<FineResponse> getByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
-                .map(user -> fineService.findByLoanUser(user).stream()
-                        .map(FineMapper::toResponse)
-                        .toList())
+                .map(fineService::findByLoanUserAsResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
     }
 
     @GetMapping("/user/{userId}/unpaid")
     public List<FineResponse> getUnpaidByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
-                .map(user -> fineService.findUnpaidByUser(user).stream()
-                        .map(FineMapper::toResponse)
-                        .toList())
+                .map(fineService::findUnpaidByUserAsResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
     }
 
@@ -50,21 +44,17 @@ public class FineController {
 
     @GetMapping("/{id}")
     public FineResponse getById(@PathVariable Integer id) {
-        Fine fine = fineService.findById(id)
+        return fineService.findByIdAsResponse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Fine not found: " + id));
-        return FineMapper.toResponse(fine);
     }
 
     @PutMapping("/{id}/pay")
     public FineResponse markAsPaid(@PathVariable Integer id) {
-        Fine fine = fineService.markAsPaid(id);
-        return FineMapper.toResponse(fine);
+        return fineService.markAsPaidAsResponse(id);
     }
 
     @GetMapping
     public List<FineResponse> getAll() {
-        return fineService.findAll().stream()
-                .map(FineMapper::toResponse)
-                .toList();
+        return fineService.findAllAsResponse();
     }
 }

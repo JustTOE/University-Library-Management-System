@@ -12,7 +12,6 @@ public class FineMapper {
                 f.getId(),
                 f.getFineId(),
                 f.getLoan() != null ? f.getLoan().getId() : null,
-                f.getLoan() != null ? f.getLoan().getLoanId() : null,
                 f.getAmount(),
                 f.getCalculated_date(),
                 f.getStatus()

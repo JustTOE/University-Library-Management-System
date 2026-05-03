@@ -83,7 +83,7 @@ class CoreWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
 
         Book updatedBook = bookRepository.findById(book.getId()).orElseThrow();
-        assertEquals(1, updatedBook.getAvailable_copies());
+        assertEquals(1, updatedBook.getAvailableCopies());
         assertEquals(1, loanRepository.findAll().size());
     }
 
@@ -102,7 +102,7 @@ class CoreWorkflowIntegrationTest {
         Fine generatedFine = fineRepository.findAll().get(0);
 
         assertEquals(LoanStatus.RETURNED, updatedLoan.getStatus());
-        assertEquals(1, updatedBook.getAvailable_copies());
+        assertEquals(1, updatedBook.getAvailableCopies());
         assertEquals(FineStatus.UNPAID, generatedFine.getStatus());
         assertEquals(new BigDecimal("3.00"), generatedFine.getAmount());
     }

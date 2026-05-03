@@ -12,3 +12,9 @@ src/ulms/resolve_log*.txt
 # IDE
 **/.idea/
 **/.vscode/
+
+# Claude Code artifacts (memory, plans, agent settings)
+**/CLAUDE.md
+**/.claude/
+**/memory/
+.claude/

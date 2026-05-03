@@ -32,11 +32,11 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE Book b SET b.available_copies = b.available_copies - 1 WHERE b.id = :id AND b.available_copies > 0")
+    @Query("UPDATE Book b SET b.availableCopies = b.availableCopies - 1 WHERE b.id = :id AND b.availableCopies > 0")
     int decrementAvailable(@Param("id") Integer id);
 
     @Modifying
     @Transactional
-    @Query("UPDATE Book b SET b.available_copies = b.available_copies + 1 WHERE b.id = :id")
+    @Query("UPDATE Book b SET b.availableCopies = b.availableCopies + 1 WHERE b.id = :id")
     int incrementAvailable(@Param("id") Integer id);
 }

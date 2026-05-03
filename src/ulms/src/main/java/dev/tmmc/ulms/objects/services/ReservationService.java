@@ -1,10 +1,12 @@
 package dev.tmmc.ulms.objects.services;
 
+import dev.tmmc.ulms.objects.dto.response.ReservationResponse;
 import dev.tmmc.ulms.objects.entities.Book;
 import dev.tmmc.ulms.objects.entities.Reservation;
 import dev.tmmc.ulms.objects.entities.User;
 import dev.tmmc.ulms.objects.entities.enums.ReservationStatus;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
+import dev.tmmc.ulms.objects.mapper.ReservationMapper;
 import dev.tmmc.ulms.objects.repositories.BookRepository;
 import dev.tmmc.ulms.objects.repositories.ReservationRepository;
 import dev.tmmc.ulms.objects.repositories.UserRepository;
@@ -54,16 +56,33 @@ public class ReservationService {
     }
 
     @Transactional
+    public ReservationResponse createReservationAsResponse(Integer userId, Integer bookId) {
+        return ReservationMapper.toResponse(createReservation(userId, bookId));
+    }
+
+    @Transactional
     public Reservation cancelReservation(Integer reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
         reservation.setStatus(ReservationStatus.CANCELLED);
-        return reservation;
+        return reservationRepository.save(reservation);
+    }
+
+    @Transactional
+    public ReservationResponse cancelReservationAsResponse(Integer reservationId) {
+        return ReservationMapper.toResponse(cancelReservation(reservationId));
     }
 
     @Transactional(readOnly = true)
     public List<Reservation> findByUser(User user) {
         return reservationRepository.findByUser(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> findByUserAsResponse(User user) {
+        return reservationRepository.findByUser(user).stream()
+                .map(ReservationMapper::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -77,8 +96,20 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<ReservationResponse> findByIdAsResponse(Integer id) {
+        return reservationRepository.findById(id).map(ReservationMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public List<Reservation> findAll() {
         return reservationRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservationResponse> findAllAsResponse() {
+        return reservationRepository.findAll().stream()
+                .map(ReservationMapper::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)

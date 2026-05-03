@@ -166,9 +166,9 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
                 <configuration>
-                    <url>jdbc:postgresql://localhost:5432/usml_db</url>
-                    <user>postgres</user>
-                    <password>pass123</password>
+                    <url>jdbc:postgresql://localhost:5431/ulms</url>
+                    <user>db_user</user>
+                    <password>db_password</password>
                 </configuration>
             </plugin>
 

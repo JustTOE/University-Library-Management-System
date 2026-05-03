@@ -2,9 +2,7 @@ package dev.tmmc.ulms.objects.controllers;
 
 import dev.tmmc.ulms.objects.dto.request.ReservationRequest;
 import dev.tmmc.ulms.objects.dto.response.ReservationResponse;
-import dev.tmmc.ulms.objects.entities.Reservation;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
-import dev.tmmc.ulms.objects.mapper.ReservationMapper;
 import dev.tmmc.ulms.objects.services.ReservationService;
 import dev.tmmc.ulms.objects.services.UserService;
 import jakarta.validation.Valid;
@@ -27,37 +25,29 @@ public class ReservationController {
 
     @PostMapping
     public ReservationResponse create(@Valid @RequestBody ReservationRequest request) {
-        Reservation reservation = reservationService.createReservation(
-                request.userId(), request.bookId());
-        return ReservationMapper.toResponse(reservation);
+        return reservationService.createReservationAsResponse(request.userId(), request.bookId());
     }
 
     @DeleteMapping("/{id}")
     public ReservationResponse cancel(@PathVariable Integer id) {
-        Reservation reservation = reservationService.cancelReservation(id);
-        return ReservationMapper.toResponse(reservation);
+        return reservationService.cancelReservationAsResponse(id);
     }
 
     @GetMapping("/user/{userId}")
     public List<ReservationResponse> getByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
-                .map(user -> reservationService.findByUser(user).stream()
-                        .map(ReservationMapper::toResponse)
-                        .toList())
+                .map(reservationService::findByUserAsResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
     }
 
     @GetMapping("/{id}")
     public ReservationResponse getById(@PathVariable Integer id) {
-        Reservation reservation = reservationService.findById(id)
+        return reservationService.findByIdAsResponse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + id));
-        return ReservationMapper.toResponse(reservation);
     }
 
     @GetMapping
     public List<ReservationResponse> getAll() {
-        return reservationService.findAll().stream()
-                .map(ReservationMapper::toResponse)
-                .toList();
+        return reservationService.findAllAsResponse();
     }
 }

@@ -28,6 +28,4 @@ public interface LoanRepository extends JpaRepository<Loan, Integer> {
     List<Loan> findByUser(User user);
 
     List<Loan> findByBook(Book book);
-
-    List<Loan> findByBookIsbn(String isbn);
 }

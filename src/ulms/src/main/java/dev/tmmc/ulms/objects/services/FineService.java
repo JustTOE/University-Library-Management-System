@@ -1,11 +1,13 @@
 package dev.tmmc.ulms.objects.services;
 
+import dev.tmmc.ulms.objects.dto.response.FineResponse;
 import dev.tmmc.ulms.objects.entities.Fine;
 import dev.tmmc.ulms.objects.entities.Loan;
 import dev.tmmc.ulms.objects.entities.User;
 import dev.tmmc.ulms.objects.entities.enums.FineStatus;
 import dev.tmmc.ulms.objects.exceptions.LoanStateException;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
+import dev.tmmc.ulms.objects.mapper.FineMapper;
 import dev.tmmc.ulms.objects.repositories.FineRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,8 +63,22 @@ public class FineService {
     }
 
     @Transactional(readOnly = true)
+    public List<FineResponse> findByLoanUserAsResponse(User user) {
+        return fineRepository.findByLoanUser(user).stream()
+                .map(FineMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<Fine> findUnpaidByUser(User user) {
         return fineRepository.findByLoanUserAndStatusNot(user, FineStatus.PAID);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FineResponse> findUnpaidByUserAsResponse(User user) {
+        return fineRepository.findByLoanUserAndStatusNot(user, FineStatus.PAID).stream()
+                .map(FineMapper::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -76,8 +92,20 @@ public class FineService {
     }
 
     @Transactional(readOnly = true)
+    public Optional<FineResponse> findByIdAsResponse(Integer id) {
+        return fineRepository.findById(id).map(FineMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public List<Fine> findAll() {
         return fineRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<FineResponse> findAllAsResponse() {
+        return fineRepository.findAll().stream()
+                .map(FineMapper::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -85,6 +113,11 @@ public class FineService {
         Fine fine = fineRepository.findById(fineId)
                 .orElseThrow(() -> new ResourceNotFoundException("Fine not found: " + fineId));
         fine.setStatus(FineStatus.PAID);
-        return fine;
+        return fineRepository.save(fine);
+    }
+
+    @Transactional
+    public FineResponse markAsPaidAsResponse(Integer fineId) {
+        return FineMapper.toResponse(markAsPaid(fineId));
     }
 }
