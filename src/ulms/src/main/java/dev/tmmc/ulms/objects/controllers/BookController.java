@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,11 +24,13 @@ public class BookController {
     }
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public Page<BookResponse> getAll(Pageable pageable) {
         return bookService.findAll(pageable).map(BookMapper::toResponse);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public BookResponse getById(@PathVariable Integer id) {
         Book book = bookService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found: " + id));
@@ -35,6 +38,7 @@ public class BookController {
     }
 
     @GetMapping("/by-isbn")
+    @PreAuthorize("isAuthenticated()")
     public BookResponse getByIsbn(@RequestParam String isbn) {
         Book book = bookService.findByIsbn(isbn)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with ISBN: " + isbn));
@@ -42,6 +46,7 @@ public class BookController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("isAuthenticated()")
     public Page<BookResponse> search(@RequestParam(required = false) String title,
                                      @RequestParam(required = false) String author,
                                      @RequestParam(required = false) String subject,
@@ -51,12 +56,14 @@ public class BookController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public BookResponse create(@Valid @RequestBody CreateBookRequest request) {
         Book book = BookMapper.toEntity(request);
         return BookMapper.toResponse(bookService.save(book));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public BookResponse update(@PathVariable Integer id,
                                @Valid @RequestBody CreateBookRequest request) {
         bookService.findById(id)
@@ -67,6 +74,7 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         bookService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found: " + id));

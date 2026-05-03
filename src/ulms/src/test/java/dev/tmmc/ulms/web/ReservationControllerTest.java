@@ -7,8 +7,10 @@ import dev.tmmc.ulms.objects.entities.enums.ReservationStatus;
 import dev.tmmc.ulms.objects.mapper.ReservationMapper;
 import dev.tmmc.ulms.objects.services.ReservationService;
 import dev.tmmc.ulms.objects.services.UserService;
+import dev.tmmc.ulms.objects.entities.enums.UserRole;
 import dev.tmmc.ulms.security.JwtService;
 import dev.tmmc.ulms.support.TestFixtures;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -42,8 +44,14 @@ class ReservationControllerTest {
     @MockitoBean
     private JwtService jwtService;
 
+    @AfterEach
+    void clearPrincipal() {
+        TestFixtures.clearPrincipal();
+    }
+
     @Test
     void createReturnsMappedReservation() throws Exception {
+        TestFixtures.withPrincipal(UserRole.STUDENT, 1);
         Reservation reservation = TestFixtures.reservation(TestFixtures.user(), TestFixtures.book(1, 0), ReservationStatus.ACTIVE);
         reservation.setId(6);
         ReservationResponse response = ReservationMapper.toResponse(reservation);
@@ -61,6 +69,7 @@ class ReservationControllerTest {
 
     @Test
     void createRejectsInvalidPayload() throws Exception {
+        TestFixtures.withPrincipal(UserRole.STUDENT, 1);
         mockMvc.perform(post("/api/reservations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userId\":1}"))
@@ -70,6 +79,7 @@ class ReservationControllerTest {
 
     @Test
     void cancelReturnsCancelledReservation() throws Exception {
+        TestFixtures.withPrincipal(UserRole.LIBRARIAN, 50);
         Reservation reservation = TestFixtures.reservation(TestFixtures.user(), TestFixtures.book(1, 0), ReservationStatus.CANCELLED);
         reservation.setId(10);
         ReservationResponse response = ReservationMapper.toResponse(reservation);
@@ -83,6 +93,7 @@ class ReservationControllerTest {
 
     @Test
     void getByUserReturns404WhenUserIsMissing() throws Exception {
+        TestFixtures.withPrincipal(UserRole.LIBRARIAN, 50);
         when(userService.findById(99)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/reservations/user/99"))
@@ -92,6 +103,7 @@ class ReservationControllerTest {
 
     @Test
     void getByIdReturns404WhenReservationIsMissing() throws Exception {
+        TestFixtures.withPrincipal(UserRole.LIBRARIAN, 50);
         when(reservationService.findByIdAsResponse(12)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/reservations/12"))

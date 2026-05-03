@@ -8,6 +8,7 @@ import dev.tmmc.ulms.objects.mapper.UserMapper;
 import dev.tmmc.ulms.objects.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class UserController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getAll() {
         return userService.findAll().stream()
                 .map(UserMapper::toResponse)
@@ -30,6 +32,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or principal.userId == #id")
     public UserResponse getById(@PathVariable Integer id) {
         User user = userService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
@@ -37,6 +40,7 @@ public class UserController {
     }
 
     @GetMapping("/by-email")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public UserResponse getByEmail(@RequestParam String email) {
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
@@ -44,6 +48,7 @@ public class UserController {
     }
 
     @GetMapping("/by-university-id")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public UserResponse getByUniversityId(@RequestParam String universityId) {
         User user = userService.findByUniversityId(universityId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with university ID: " + universityId));
@@ -51,6 +56,7 @@ public class UserController {
     }
 
     @GetMapping("/by-staff-id")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public UserResponse getByStaffId(@RequestParam String staffId) {
         User user = userService.findByStaffId(staffId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with staff ID: " + staffId));
@@ -58,12 +64,14 @@ public class UserController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
         User user = UserMapper.toEntity(request);
         return UserMapper.toResponse(userService.save(user, request.password()));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or principal.userId == #id")
     public UserResponse update(@PathVariable Integer id, @Valid @RequestBody CreateUserRequest request) {
         userService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
@@ -73,6 +81,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         userService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
@@ -81,11 +90,13 @@ public class UserController {
     }
 
     @PutMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse activate(@PathVariable Integer id) {
         return UserMapper.toResponse(userService.activate(id));
     }
 
     @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse deactivate(@PathVariable Integer id) {
         return UserMapper.toResponse(userService.deactivate(id));
     }

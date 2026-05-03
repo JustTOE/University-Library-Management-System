@@ -12,16 +12,32 @@ import dev.tmmc.ulms.objects.entities.enums.PaymentMethod;
 import dev.tmmc.ulms.objects.entities.enums.PaymentStatus;
 import dev.tmmc.ulms.objects.entities.enums.ReservationStatus;
 import dev.tmmc.ulms.objects.entities.enums.UserRole;
+import dev.tmmc.ulms.security.JwtPrincipal;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public final class TestFixtures {
 
     private TestFixtures() {
+    }
+
+    public static void withPrincipal(UserRole role, Integer userId) {
+        JwtPrincipal principal = new JwtPrincipal(userId, "test-" + userId + "@example.com", role.name());
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                principal, null, List.of(new SimpleGrantedAuthority("ROLE_" + role.name())));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
+    public static void clearPrincipal() {
+        SecurityContextHolder.clearContext();
     }
 
     public static User user() {

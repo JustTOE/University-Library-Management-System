@@ -43,8 +43,14 @@ class LoanControllerTest {
     @MockitoBean
     private JwtService jwtService;
 
+    @org.junit.jupiter.api.AfterEach
+    void clearPrincipal() {
+        TestFixtures.clearPrincipal();
+    }
+
     @Test
     void borrowReturnsMappedLoanResponse() throws Exception {
+        TestFixtures.withPrincipal(dev.tmmc.ulms.objects.entities.enums.UserRole.STUDENT, 1);
         Loan loan = TestFixtures.loan(TestFixtures.user(), TestFixtures.book(1, 0), LoanStatus.ACTIVE, LocalDate.now().plusDays(7));
         loan.setId(5);
         LoanResponse response = LoanMapper.toResponse(loan);
@@ -63,6 +69,7 @@ class LoanControllerTest {
 
     @Test
     void borrowRejectsInvalidPayload() throws Exception {
+        TestFixtures.withPrincipal(dev.tmmc.ulms.objects.entities.enums.UserRole.STUDENT, 1);
         mockMvc.perform(post("/api/loans/borrow")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userId\":1}"))
@@ -72,6 +79,7 @@ class LoanControllerTest {
 
     @Test
     void getByUserReturns404WhenUserDoesNotExist() throws Exception {
+        TestFixtures.withPrincipal(dev.tmmc.ulms.objects.entities.enums.UserRole.LIBRARIAN, 50);
         when(userService.findById(99)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/loans/user/99"))
@@ -81,6 +89,7 @@ class LoanControllerTest {
 
     @Test
     void borrowReturnsConflictWhenBookCannotBeBorrowed() throws Exception {
+        TestFixtures.withPrincipal(dev.tmmc.ulms.objects.entities.enums.UserRole.STUDENT, 1);
         when(loanService.borrowBookAsResponse(1, 2)).thenThrow(new BookNotAvailableException("Book is not available"));
 
         mockMvc.perform(post("/api/loans/borrow")

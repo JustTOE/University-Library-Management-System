@@ -7,6 +7,7 @@ import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.services.PaymentService;
 import dev.tmmc.ulms.objects.services.UserService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class PaymentController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('STUDENT') and principal.userId == #request.userId()")
     public PaymentResponse processPayment(@Valid @RequestBody PaymentRequest request) {
         User user = userService.findById(request.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.userId()));
@@ -32,6 +34,7 @@ public class PaymentController {
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN') or principal.userId == #userId")
     public List<PaymentResponse> getByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
                 .map(paymentService::findByUserAsResponse)
@@ -39,12 +42,14 @@ public class PaymentController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('STUDENT','LIBRARIAN','ADMIN')")
     public PaymentResponse getById(@PathVariable Integer id) {
         return paymentService.findByIdAsResponse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found: " + id));
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public List<PaymentResponse> getAll() {
         return paymentService.findAllAsResponse();
     }

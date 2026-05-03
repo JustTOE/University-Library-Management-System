@@ -9,8 +9,11 @@ import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
 import dev.tmmc.ulms.objects.mapper.FineMapper;
 import dev.tmmc.ulms.objects.services.FineService;
 import dev.tmmc.ulms.objects.services.UserService;
+import dev.tmmc.ulms.objects.entities.enums.UserRole;
 import dev.tmmc.ulms.security.JwtService;
 import dev.tmmc.ulms.support.TestFixtures;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -44,6 +47,16 @@ class FineControllerTest {
 
     @MockitoBean
     private JwtService jwtService;
+
+    @BeforeEach
+    void setUpPrincipal() {
+        TestFixtures.withPrincipal(UserRole.LIBRARIAN, 99);
+    }
+
+    @AfterEach
+    void clearPrincipal() {
+        TestFixtures.clearPrincipal();
+    }
 
     @Test
     void getUnpaidByUserReturnsMappedFines() throws Exception {

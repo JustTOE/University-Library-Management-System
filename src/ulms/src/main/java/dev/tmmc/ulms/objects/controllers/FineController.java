@@ -4,6 +4,7 @@ import dev.tmmc.ulms.objects.dto.response.FineResponse;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.services.FineService;
 import dev.tmmc.ulms.objects.services.UserService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ public class FineController {
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN') or principal.userId == #userId")
     public List<FineResponse> getByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
                 .map(fineService::findByLoanUserAsResponse)
@@ -29,6 +31,7 @@ public class FineController {
     }
 
     @GetMapping("/user/{userId}/unpaid")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN') or principal.userId == #userId")
     public List<FineResponse> getUnpaidByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
                 .map(fineService::findUnpaidByUserAsResponse)
@@ -36,6 +39,7 @@ public class FineController {
     }
 
     @GetMapping("/user/{userId}/total-unpaid")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN') or principal.userId == #userId")
     public BigDecimal getTotalUnpaid(@PathVariable Integer userId) {
         return userService.findById(userId)
                 .map(user -> fineService.sumUnpaidByUser(user).orElse(BigDecimal.ZERO))
@@ -43,17 +47,20 @@ public class FineController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('STUDENT','LIBRARIAN','ADMIN')")
     public FineResponse getById(@PathVariable Integer id) {
         return fineService.findByIdAsResponse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Fine not found: " + id));
     }
 
     @PutMapping("/{id}/pay")
+    @PreAuthorize("hasAnyRole('STUDENT','LIBRARIAN','ADMIN')")
     public FineResponse markAsPaid(@PathVariable Integer id) {
         return fineService.markAsPaidAsResponse(id);
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public List<FineResponse> getAll() {
         return fineService.findAllAsResponse();
     }

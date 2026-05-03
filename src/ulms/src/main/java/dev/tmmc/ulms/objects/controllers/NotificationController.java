@@ -4,6 +4,7 @@ import dev.tmmc.ulms.objects.dto.response.NotificationResponse;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.services.NotificationService;
 import dev.tmmc.ulms.objects.services.UserService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class NotificationController {
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN') or principal.userId == #userId")
     public List<NotificationResponse> getByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
                 .map(notificationService::findByUserAsResponse)
@@ -29,17 +31,20 @@ public class NotificationController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('STUDENT','LIBRARIAN','ADMIN')")
     public NotificationResponse getById(@PathVariable Integer id) {
         return notificationService.findByIdAsResponse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + id));
     }
 
     @PutMapping("/{id}/acknowledge")
+    @PreAuthorize("hasAnyRole('STUDENT','LIBRARIAN','ADMIN')")
     public NotificationResponse acknowledge(@PathVariable Integer id) {
         return notificationService.markAcknowledgedAsResponse(id);
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public List<NotificationResponse> getAll() {
         return notificationService.findAllAsResponse();
     }

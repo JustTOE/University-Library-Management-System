@@ -12,8 +12,10 @@ import dev.tmmc.ulms.objects.exceptions.LoanStateException;
 import dev.tmmc.ulms.objects.mapper.PaymentMapper;
 import dev.tmmc.ulms.objects.services.PaymentService;
 import dev.tmmc.ulms.objects.services.UserService;
+import dev.tmmc.ulms.objects.entities.enums.UserRole;
 import dev.tmmc.ulms.security.JwtService;
 import dev.tmmc.ulms.support.TestFixtures;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -48,8 +50,14 @@ class PaymentControllerTest {
     @MockitoBean
     private JwtService jwtService;
 
+    @AfterEach
+    void clearPrincipal() {
+        TestFixtures.clearPrincipal();
+    }
+
     @Test
     void processPaymentReturnsMappedPayment() throws Exception {
+        TestFixtures.withPrincipal(UserRole.STUDENT, 1);
         User user = TestFixtures.user();
         user.setId(1);
         Payment payment = TestFixtures.payment(
@@ -78,6 +86,7 @@ class PaymentControllerTest {
 
     @Test
     void processPaymentRejectsInvalidPayload() throws Exception {
+        TestFixtures.withPrincipal(UserRole.STUDENT, 1);
         mockMvc.perform(post("/api/payments")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"fineId\":2,\"userId\":1}"))
@@ -87,6 +96,7 @@ class PaymentControllerTest {
 
     @Test
     void processPaymentReturns404WhenUserIsMissing() throws Exception {
+        TestFixtures.withPrincipal(UserRole.STUDENT, 99);
         when(userService.findById(99)).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/api/payments")
@@ -98,6 +108,7 @@ class PaymentControllerTest {
 
     @Test
     void processPaymentReturnsConflictWhenFineIsAlreadyPaid() throws Exception {
+        TestFixtures.withPrincipal(UserRole.STUDENT, 1);
         User user = TestFixtures.user();
         when(userService.findById(1)).thenReturn(Optional.of(user));
         when(paymentService.processPaymentAsResponse(2, PaymentMethod.CARD, user))
@@ -112,6 +123,7 @@ class PaymentControllerTest {
 
     @Test
     void getByIdReturns404WhenPaymentIsMissing() throws Exception {
+        TestFixtures.withPrincipal(UserRole.LIBRARIAN, 50);
         when(paymentService.findByIdAsResponse(45)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/payments/45"))

@@ -8,6 +8,7 @@ import dev.tmmc.ulms.objects.mapper.LibraryCatalogMapper;
 import dev.tmmc.ulms.objects.services.LibraryCatalogService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class LibraryCatalogController {
     }
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public List<LibraryCatalogResponse> getAll() {
         return libraryCatalogService.findAll().stream()
                 .map(LibraryCatalogMapper::toResponse)
@@ -30,6 +32,7 @@ public class LibraryCatalogController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public LibraryCatalogResponse getById(@PathVariable Integer id) {
         LibraryCatalog catalog = libraryCatalogService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Catalog not found: " + id));
@@ -37,12 +40,14 @@ public class LibraryCatalogController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public LibraryCatalogResponse create(@Valid @RequestBody CreateLibraryCatalogRequest request) {
         LibraryCatalog catalog = LibraryCatalogMapper.toEntity(request);
         return LibraryCatalogMapper.toResponse(libraryCatalogService.save(catalog));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public LibraryCatalogResponse update(@PathVariable Integer id,
                                          @Valid @RequestBody CreateLibraryCatalogRequest request) {
         libraryCatalogService.findById(id)
@@ -53,6 +58,7 @@ public class LibraryCatalogController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         libraryCatalogService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Catalog not found: " + id));
