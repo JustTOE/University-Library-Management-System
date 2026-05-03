@@ -12,6 +12,7 @@ import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.mapper.PaymentMapper;
 import dev.tmmc.ulms.objects.repositories.FineRepository;
 import dev.tmmc.ulms.objects.repositories.PaymentRepository;
+import dev.tmmc.ulms.security.OwnershipChecker;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -85,7 +86,11 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public Optional<PaymentResponse> findByIdAsResponse(Integer id) {
-        return paymentRepository.findById(id).map(PaymentMapper::toResponse);
+        return paymentRepository.findById(id)
+                .map(payment -> {
+                    OwnershipChecker.requireOwnerOrStaff(payment.getUser().getId());
+                    return PaymentMapper.toResponse(payment);
+                });
     }
 
     @Transactional(readOnly = true)

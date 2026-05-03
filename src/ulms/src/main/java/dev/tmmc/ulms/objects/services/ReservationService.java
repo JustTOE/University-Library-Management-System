@@ -10,6 +10,7 @@ import dev.tmmc.ulms.objects.mapper.ReservationMapper;
 import dev.tmmc.ulms.objects.repositories.BookRepository;
 import dev.tmmc.ulms.objects.repositories.ReservationRepository;
 import dev.tmmc.ulms.objects.repositories.UserRepository;
+import dev.tmmc.ulms.security.OwnershipChecker;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,7 @@ public class ReservationService {
     public Reservation cancelReservation(Integer reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + reservationId));
+        OwnershipChecker.requireOwnerOrStaff(reservation.getUser().getId());
         reservation.setStatus(ReservationStatus.CANCELLED);
         return reservationRepository.save(reservation);
     }
@@ -97,7 +99,11 @@ public class ReservationService {
 
     @Transactional(readOnly = true)
     public Optional<ReservationResponse> findByIdAsResponse(Integer id) {
-        return reservationRepository.findById(id).map(ReservationMapper::toResponse);
+        return reservationRepository.findById(id)
+                .map(reservation -> {
+                    OwnershipChecker.requireOwnerOrStaff(reservation.getUser().getId());
+                    return ReservationMapper.toResponse(reservation);
+                });
     }
 
     @Transactional(readOnly = true)

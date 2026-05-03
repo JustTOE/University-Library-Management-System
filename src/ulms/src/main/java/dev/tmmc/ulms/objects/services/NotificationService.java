@@ -9,6 +9,7 @@ import dev.tmmc.ulms.objects.entities.enums.NotificationType;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.mapper.NotificationMapper;
 import dev.tmmc.ulms.objects.repositories.NotificationRepository;
+import dev.tmmc.ulms.security.OwnershipChecker;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ public class NotificationService {
     public Notification markAcknowledged(Integer notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + notificationId));
+        OwnershipChecker.requireOwnerOrStaff(notification.getUser().getId());
         notification.setStatus(NotificationStatus.ACKNOWLEDGED);
         return notificationRepository.save(notification);
     }
@@ -83,7 +85,11 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public Optional<NotificationResponse> findByIdAsResponse(Integer id) {
-        return notificationRepository.findById(id).map(NotificationMapper::toResponse);
+        return notificationRepository.findById(id)
+                .map(notification -> {
+                    OwnershipChecker.requireOwnerOrStaff(notification.getUser().getId());
+                    return NotificationMapper.toResponse(notification);
+                });
     }
 
     @Transactional(readOnly = true)

@@ -19,6 +19,7 @@ import dev.tmmc.ulms.objects.repositories.FineRepository;
 import dev.tmmc.ulms.objects.repositories.LoanRepository;
 import dev.tmmc.ulms.objects.repositories.ReservationRepository;
 import dev.tmmc.ulms.objects.repositories.UserRepository;
+import dev.tmmc.ulms.security.OwnershipChecker;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -138,6 +139,8 @@ public class LoanService {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new ResourceNotFoundException("Loan not found: " + loanId));
 
+        OwnershipChecker.requireOwnerOrStaff(loan.getUser().getId());
+
         if (loan.getStatus() == LoanStatus.RETURNED) {
             throw new LoanStateException("Cannot renew a returned loan.");
         }
@@ -202,7 +205,11 @@ public class LoanService {
 
     @Transactional(readOnly = true)
     public Optional<LoanResponse> findByIdAsResponse(Integer id) {
-        return loanRepository.findById(id).map(LoanMapper::toResponse);
+        return loanRepository.findById(id)
+                .map(loan -> {
+                    OwnershipChecker.requireOwnerOrStaff(loan.getUser().getId());
+                    return LoanMapper.toResponse(loan);
+                });
     }
 
     @Transactional(readOnly = true)

@@ -9,6 +9,7 @@ import dev.tmmc.ulms.objects.exceptions.LoanStateException;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.mapper.FineMapper;
 import dev.tmmc.ulms.objects.repositories.FineRepository;
+import dev.tmmc.ulms.security.OwnershipChecker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,7 +94,11 @@ public class FineService {
 
     @Transactional(readOnly = true)
     public Optional<FineResponse> findByIdAsResponse(Integer id) {
-        return fineRepository.findById(id).map(FineMapper::toResponse);
+        return fineRepository.findById(id)
+                .map(fine -> {
+                    OwnershipChecker.requireOwnerOrStaff(fine.getLoan().getUser().getId());
+                    return FineMapper.toResponse(fine);
+                });
     }
 
     @Transactional(readOnly = true)
@@ -112,6 +117,7 @@ public class FineService {
     public Fine markAsPaid(Integer fineId) {
         Fine fine = fineRepository.findById(fineId)
                 .orElseThrow(() -> new ResourceNotFoundException("Fine not found: " + fineId));
+        OwnershipChecker.requireOwnerOrStaff(fine.getLoan().getUser().getId());
         fine.setStatus(FineStatus.PAID);
         return fineRepository.save(fine);
     }
