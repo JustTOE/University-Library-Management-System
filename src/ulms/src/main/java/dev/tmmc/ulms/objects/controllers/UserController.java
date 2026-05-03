@@ -79,4 +79,14 @@ public class UserController {
         userService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/activate")
+    public UserResponse activate(@PathVariable Integer id) {
+        return UserMapper.toResponse(userService.activate(id));
+    }
+
+    @PutMapping("/{id}/deactivate")
+    public UserResponse deactivate(@PathVariable Integer id) {
+        return UserMapper.toResponse(userService.deactivate(id));
+    }
 }

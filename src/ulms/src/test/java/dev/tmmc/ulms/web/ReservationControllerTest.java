@@ -7,6 +7,7 @@ import dev.tmmc.ulms.objects.entities.enums.ReservationStatus;
 import dev.tmmc.ulms.objects.mapper.ReservationMapper;
 import dev.tmmc.ulms.objects.services.ReservationService;
 import dev.tmmc.ulms.objects.services.UserService;
+import dev.tmmc.ulms.security.JwtService;
 import dev.tmmc.ulms.support.TestFixtures;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,9 @@ class ReservationControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @Test
     void createReturnsMappedReservation() throws Exception {

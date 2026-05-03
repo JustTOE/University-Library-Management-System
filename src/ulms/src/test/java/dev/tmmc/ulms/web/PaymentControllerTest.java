@@ -12,6 +12,7 @@ import dev.tmmc.ulms.objects.exceptions.LoanStateException;
 import dev.tmmc.ulms.objects.mapper.PaymentMapper;
 import dev.tmmc.ulms.objects.services.PaymentService;
 import dev.tmmc.ulms.objects.services.UserService;
+import dev.tmmc.ulms.security.JwtService;
 import dev.tmmc.ulms.support.TestFixtures;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,9 @@ class PaymentControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @Test
     void processPaymentReturnsMappedPayment() throws Exception {

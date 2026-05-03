@@ -9,6 +9,7 @@ import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
 import dev.tmmc.ulms.objects.mapper.FineMapper;
 import dev.tmmc.ulms.objects.services.FineService;
 import dev.tmmc.ulms.objects.services.UserService;
+import dev.tmmc.ulms.security.JwtService;
 import dev.tmmc.ulms.support.TestFixtures;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ class FineControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @Test
     void getUnpaidByUserReturnsMappedFines() throws Exception {

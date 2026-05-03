@@ -60,4 +60,20 @@ public class UserService {
     public void deleteById(Integer id) {
         userRepository.deleteById(id);
     }
+
+    @Transactional
+    public User activate(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException("User not found: " + id));
+        user.setActive(true);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User deactivate(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException("User not found: " + id));
+        user.setActive(false);
+        return userRepository.save(user);
+    }
 }
