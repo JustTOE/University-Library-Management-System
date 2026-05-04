@@ -3,8 +3,14 @@ package dev.tmmc.ulms.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.tmmc.ulms.objects.controllers.UserController;
 import dev.tmmc.ulms.objects.dto.request.CreateUserRequest;
+import dev.tmmc.ulms.objects.dto.response.FineResponse;
+import dev.tmmc.ulms.objects.dto.response.LoanResponse;
 import dev.tmmc.ulms.objects.entities.User;
+import dev.tmmc.ulms.objects.entities.enums.FineStatus;
+import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
 import dev.tmmc.ulms.objects.entities.enums.UserRole;
+import dev.tmmc.ulms.objects.services.FineService;
+import dev.tmmc.ulms.objects.services.LoanService;
 import dev.tmmc.ulms.objects.services.UserService;
 import dev.tmmc.ulms.security.JwtService;
 import dev.tmmc.ulms.support.TestFixtures;
@@ -18,6 +24,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +48,8 @@ class UserControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @MockitoBean private UserService userService;
+    @MockitoBean private LoanService loanService;
+    @MockitoBean private FineService fineService;
     @MockitoBean private JwtService jwtService;
 
     @BeforeEach
@@ -131,5 +142,61 @@ class UserControllerTest {
         mockMvc.perform(put("/api/users/4/deactivate"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(4));
+    }
+
+    @Test
+    void createReturnsAdminWhenAdminRoleRequested() throws Exception {
+        when(userService.save(any(User.class), eq("password1"))).thenAnswer(inv -> {
+            User user = inv.getArgument(0);
+            user.setId(8);
+            return user;
+        });
+
+        CreateUserRequest request = new CreateUserRequest(
+                "Daria", "daria@example.com", null, "S-2", null, UserRole.ADMIN, "password1"
+        );
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(8))
+                .andExpect(jsonPath("$.role").value("ADMIN"));
+    }
+
+    @Test
+    void historyReturnsCombinedLoansAndFines() throws Exception {
+        User user = existing(11);
+        when(userService.findById(11)).thenReturn(Optional.of(user));
+
+        LoanResponse loan = new LoanResponse(
+                1, "LN-1", 11, "Alice Student", 2, "Distributed Systems",
+                Date.valueOf(LocalDate.now().minusDays(30)),
+                Date.valueOf(LocalDate.now().minusDays(16)),
+                Date.valueOf(LocalDate.now().minusDays(15)),
+                0, LoanStatus.RETURNED);
+        FineResponse fine = new FineResponse(
+                1, "FN-1", 1, new BigDecimal("1.00"),
+                Date.valueOf(LocalDate.now().minusDays(15)), FineStatus.PAID);
+
+        when(loanService.findByUserWithDetailsAsResponse(user)).thenReturn(List.of(loan));
+        when(fineService.findByLoanUserAsResponse(user)).thenReturn(List.of(fine));
+
+        mockMvc.perform(get("/api/users/11/history"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.loans.length()").value(1))
+                .andExpect(jsonPath("$.loans[0].loanId").value("LN-1"))
+                .andExpect(jsonPath("$.loans[0].status").value("RETURNED"))
+                .andExpect(jsonPath("$.fines.length()").value(1))
+                .andExpect(jsonPath("$.fines[0].fineId").value("FN-1"))
+                .andExpect(jsonPath("$.fines[0].status").value("PAID"));
+    }
+
+    @Test
+    void historyReturns404WhenUserMissing() throws Exception {
+        when(userService.findById(99)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/users/99/history"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("User not found: 99"));
     }
 }

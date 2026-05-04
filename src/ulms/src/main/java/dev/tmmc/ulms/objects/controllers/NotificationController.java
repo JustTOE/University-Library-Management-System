@@ -1,6 +1,7 @@
 package dev.tmmc.ulms.objects.controllers;
 
 import dev.tmmc.ulms.objects.dto.response.NotificationResponse;
+import dev.tmmc.ulms.objects.dto.response.UnreadCountResponse;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.services.NotificationService;
 import dev.tmmc.ulms.objects.services.UserService;
@@ -27,6 +28,14 @@ public class NotificationController {
     public List<NotificationResponse> getByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
                 .map(notificationService::findByUserAsResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+    }
+
+    @GetMapping("/user/{userId}/unread-count")
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN') or principal.userId == #userId")
+    public UnreadCountResponse getUnreadCount(@PathVariable Integer userId) {
+        return userService.findById(userId)
+                .map(user -> new UnreadCountResponse(notificationService.unreadCountFor(user)))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
     }
 

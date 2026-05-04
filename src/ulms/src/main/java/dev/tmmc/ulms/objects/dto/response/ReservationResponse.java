@@ -13,5 +13,6 @@ public record ReservationResponse(
         String bookTitle,
         OffsetDateTime reservedAt,
         Date expiryDate,
-        ReservationStatus status
+        ReservationStatus status,
+        Integer queuePosition
 ) {}

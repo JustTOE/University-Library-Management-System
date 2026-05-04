@@ -8,6 +8,10 @@ public class ReservationMapper {
     private ReservationMapper() {}
 
     public static ReservationResponse toResponse(Reservation r) {
+        return toResponse(r, null);
+    }
+
+    public static ReservationResponse toResponse(Reservation r, Integer queuePosition) {
         return new ReservationResponse(
                 r.getId(),
                 r.getUser() != null ? r.getUser().getId() : null,
@@ -16,7 +20,8 @@ public class ReservationMapper {
                 r.getBook() != null ? r.getBook().getTitle() : null,
                 r.getReserved_at(),
                 r.getExpiry_date(),
-                r.getStatus()
+                r.getStatus(),
+                queuePosition
         );
     }
 }

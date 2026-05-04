@@ -11,11 +11,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.sql.Date;
+import java.util.Collection;
 import java.util.List;
 
 public interface LoanRepository extends JpaRepository<Loan, Integer> {
 
     List<Loan> findByUserAndStatus(User user, LoanStatus status);
+
+    boolean existsByBook_IdAndStatusIn(Integer bookId, Collection<LoanStatus> statuses);
 
     @Query("SELECT l FROM Loan l WHERE l.due_date < :date AND l.status <> :status")
     List<Loan> findOverdueLoansBefore(@Param("date") Date date, @Param("status") LoanStatus status);

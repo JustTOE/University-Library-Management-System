@@ -58,7 +58,7 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse createReservationAsResponse(Integer userId, Integer bookId) {
-        return ReservationMapper.toResponse(createReservation(userId, bookId));
+        return toResponseWithQueuePosition(createReservation(userId, bookId));
     }
 
     @Transactional
@@ -72,7 +72,7 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse cancelReservationAsResponse(Integer reservationId) {
-        return ReservationMapper.toResponse(cancelReservation(reservationId));
+        return toResponseWithQueuePosition(cancelReservation(reservationId));
     }
 
     @Transactional(readOnly = true)
@@ -83,7 +83,7 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public List<ReservationResponse> findByUserAsResponse(User user) {
         return reservationRepository.findByUser(user).stream()
-                .map(ReservationMapper::toResponse)
+                .map(this::toResponseWithQueuePosition)
                 .toList();
     }
 
@@ -102,7 +102,7 @@ public class ReservationService {
         return reservationRepository.findById(id)
                 .map(reservation -> {
                     OwnershipChecker.requireOwnerOrStaff(reservation.getUser().getId());
-                    return ReservationMapper.toResponse(reservation);
+                    return toResponseWithQueuePosition(reservation);
                 });
     }
 
@@ -114,8 +114,20 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public List<ReservationResponse> findAllAsResponse() {
         return reservationRepository.findAll().stream()
-                .map(ReservationMapper::toResponse)
+                .map(this::toResponseWithQueuePosition)
                 .toList();
+    }
+
+    private ReservationResponse toResponseWithQueuePosition(Reservation reservation) {
+        Integer position = null;
+        if (reservation.getStatus() == ReservationStatus.ACTIVE) {
+            long ahead = reservationRepository.countActiveAheadOf(
+                    reservation.getBook(),
+                    ReservationStatus.ACTIVE,
+                    reservation.getReserved_at());
+            position = (int) ahead + 1;
+        }
+        return ReservationMapper.toResponse(reservation, position);
     }
 
     @Transactional(readOnly = true)

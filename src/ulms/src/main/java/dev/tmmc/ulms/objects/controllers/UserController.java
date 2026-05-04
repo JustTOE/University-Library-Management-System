@@ -1,10 +1,13 @@
 package dev.tmmc.ulms.objects.controllers;
 
 import dev.tmmc.ulms.objects.dto.request.CreateUserRequest;
+import dev.tmmc.ulms.objects.dto.response.UserHistoryResponse;
 import dev.tmmc.ulms.objects.dto.response.UserResponse;
 import dev.tmmc.ulms.objects.entities.User;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.mapper.UserMapper;
+import dev.tmmc.ulms.objects.services.FineService;
+import dev.tmmc.ulms.objects.services.LoanService;
 import dev.tmmc.ulms.objects.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +21,15 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final LoanService loanService;
+    private final FineService fineService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService,
+                          LoanService loanService,
+                          FineService fineService) {
         this.userService = userService;
+        this.loanService = loanService;
+        this.fineService = fineService;
     }
 
     @GetMapping
@@ -99,5 +108,16 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse deactivate(@PathVariable Integer id) {
         return UserMapper.toResponse(userService.deactivate(id));
+    }
+
+    @GetMapping("/{id}/history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserHistoryResponse history(@PathVariable Integer id) {
+        User user = userService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
+        return new UserHistoryResponse(
+                loanService.findByUserWithDetailsAsResponse(user),
+                fineService.findByLoanUserAsResponse(user)
+        );
     }
 }

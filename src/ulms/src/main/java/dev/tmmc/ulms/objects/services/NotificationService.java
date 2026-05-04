@@ -103,4 +103,9 @@ public class NotificationService {
                 .map(NotificationMapper::toResponse)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public long unreadCountFor(User user) {
+        return notificationRepository.countByUserAndStatus(user, NotificationStatus.NOT_ACKNOWLEDGED);
+    }
 }

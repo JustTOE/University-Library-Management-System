@@ -1,21 +1,30 @@
 package dev.tmmc.ulms.objects.services;
 
 import dev.tmmc.ulms.objects.entities.Book;
+import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
+import dev.tmmc.ulms.objects.exceptions.BookInUseException;
 import dev.tmmc.ulms.objects.repositories.BookRepository;
+import dev.tmmc.ulms.objects.repositories.LoanRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.EnumSet;
 import java.util.Optional;
 
 @Service
 public class BookService {
 
-    private final BookRepository bookRepository;
+    private static final EnumSet<LoanStatus> BLOCKING_LOAN_STATUSES =
+            EnumSet.of(LoanStatus.ACTIVE, LoanStatus.RENEWED, LoanStatus.OVERDUE);
 
-    public BookService(BookRepository bookRepository) {
+    private final BookRepository bookRepository;
+    private final LoanRepository loanRepository;
+
+    public BookService(BookRepository bookRepository, LoanRepository loanRepository) {
         this.bookRepository = bookRepository;
+        this.loanRepository = loanRepository;
     }
 
     @Transactional(readOnly = true)
@@ -50,6 +59,10 @@ public class BookService {
 
     @Transactional
     public void deleteById(Integer id) {
+        if (loanRepository.existsByBook_IdAndStatusIn(id, BLOCKING_LOAN_STATUSES)) {
+            throw new BookInUseException(
+                    "Book has active loans and cannot be deleted: " + id);
+        }
         bookRepository.deleteById(id);
     }
 
