@@ -12,8 +12,10 @@ import dev.tmmc.ulms.objects.exceptions.EmailAlreadyExistsException;
 import dev.tmmc.ulms.objects.exceptions.InvalidCredentialsException;
 import dev.tmmc.ulms.objects.mapper.UserMapper;
 import dev.tmmc.ulms.objects.repositories.UserRepository;
+import dev.tmmc.ulms.objects.services.mail.RegistrationCompletedEvent;
 import dev.tmmc.ulms.security.JwtService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ public class AuthService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final ApplicationEventPublisher eventPublisher;
     private final long jwtLifetimeMinutes;
 
     public AuthService(
@@ -37,12 +40,14 @@ public class AuthService {
             UserService userService,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
+            ApplicationEventPublisher eventPublisher,
             @Value("${ulms.security.jwt.lifetime-minutes:60}") long jwtLifetimeMinutes
     ) {
         this.userRepository = userRepository;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.eventPublisher = eventPublisher;
         this.jwtLifetimeMinutes = jwtLifetimeMinutes;
     }
 
@@ -103,6 +108,8 @@ public class AuthService {
         user.setRole(UserRole.STUDENT);
         user.setActive(true);
 
-        return UserMapper.toResponse(userService.save(user, request.password()));
+        User saved = userService.save(user, request.password());
+        eventPublisher.publishEvent(new RegistrationCompletedEvent(saved));
+        return UserMapper.toResponse(saved);
     }
 }

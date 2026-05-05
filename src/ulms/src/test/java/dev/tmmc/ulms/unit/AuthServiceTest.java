@@ -13,6 +13,7 @@ import dev.tmmc.ulms.objects.exceptions.InvalidCredentialsException;
 import dev.tmmc.ulms.objects.repositories.UserRepository;
 import dev.tmmc.ulms.objects.services.AuthService;
 import dev.tmmc.ulms.objects.services.UserService;
+import dev.tmmc.ulms.objects.services.mail.RegistrationCompletedEvent;
 import dev.tmmc.ulms.security.JwtService;
 import dev.tmmc.ulms.support.TestFixtures;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.OffsetDateTime;
@@ -43,9 +45,10 @@ class AuthServiceTest {
     @Mock private UserService userService;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtService jwtService;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     private AuthService authService() {
-        return new AuthService(userRepository, userService, passwordEncoder, jwtService, 60L);
+        return new AuthService(userRepository, userService, passwordEncoder, jwtService, eventPublisher, 60L);
     }
 
     private User activeUser() {
@@ -165,6 +168,10 @@ class AuthServiceTest {
         assertEquals("Bob", response.name());
         assertEquals(UserRole.STUDENT, response.role());
         verify(userService, times(1)).save(any(User.class), any(String.class));
+        ArgumentCaptor<RegistrationCompletedEvent> eventCaptor =
+                ArgumentCaptor.forClass(RegistrationCompletedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        assertEquals(42, eventCaptor.getValue().user().getId());
     }
 
     @Test
@@ -176,5 +183,6 @@ class AuthServiceTest {
 
         assertThrows(EmailAlreadyExistsException.class, () -> authService().register(request));
         verify(userService, never()).save(any(User.class), any(String.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 }

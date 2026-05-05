@@ -18,6 +18,15 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+  mailhog:
+    container_name: mailhog
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - postgres-tier
+    restart: unless-stopped
   spring-boot-app:
     container_name: spring_boot_app
     build: src/ulms
@@ -27,11 +36,15 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/ulms
       - SPRING_DATASOURCE_USERNAME=db_user
       - SPRING_DATASOURCE_PASSWORD=db_password
+      - SPRING_MAIL_HOST=mailhog
+      - SPRING_MAIL_PORT=1025
+      - ULMS_MAIL_ENABLED=true
     networks:
       - postgres-tier
     restart: unless-stopped
     depends_on:
       - postgres_database
+      - mailhog
 
 volumes:
   postgres-data: {}
