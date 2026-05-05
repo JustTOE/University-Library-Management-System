@@ -13,5 +13,7 @@ public record PaymentResponse(
         BigDecimal amount,
         OffsetDateTime paymentDate,
         PaymentMethod method,
-        PaymentStatus status
+        PaymentStatus status,
+        String providerRef,
+        String declineReason
 ) {}

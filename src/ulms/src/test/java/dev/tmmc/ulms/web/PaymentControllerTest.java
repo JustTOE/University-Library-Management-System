@@ -9,6 +9,7 @@ import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
 import dev.tmmc.ulms.objects.entities.enums.PaymentMethod;
 import dev.tmmc.ulms.objects.entities.enums.PaymentStatus;
 import dev.tmmc.ulms.objects.exceptions.LoanStateException;
+import dev.tmmc.ulms.objects.exceptions.PaymentDeclinedException;
 import dev.tmmc.ulms.objects.mapper.PaymentMapper;
 import dev.tmmc.ulms.objects.services.PaymentService;
 import dev.tmmc.ulms.objects.services.UserService;
@@ -119,6 +120,23 @@ class PaymentControllerTest {
                         .content("{\"fineId\":2,\"userId\":1,\"method\":\"CARD\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Fine is already paid."));
+    }
+
+    @Test
+    void paymentDeclinedReturns402WithReason() throws Exception {
+        TestFixtures.withPrincipal(UserRole.STUDENT, 1);
+        User user = TestFixtures.user();
+        when(userService.findById(1)).thenReturn(Optional.of(user));
+        when(paymentService.processPaymentAsResponse(2, PaymentMethod.CASH, user))
+                .thenThrow(new PaymentDeclinedException("CASH_LIMIT_EXCEEDED"));
+
+        mockMvc.perform(post("/api/payments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fineId\":2,\"userId\":1,\"method\":\"CASH\"}"))
+                .andExpect(status().isPaymentRequired())
+                .andExpect(jsonPath("$.status").value(402))
+                .andExpect(jsonPath("$.declineReason").value("CASH_LIMIT_EXCEEDED"))
+                .andExpect(jsonPath("$.message").value("Payment was declined: CASH_LIMIT_EXCEEDED"));
     }
 
     @Test

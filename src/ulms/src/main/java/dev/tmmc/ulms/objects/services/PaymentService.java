@@ -8,10 +8,13 @@ import dev.tmmc.ulms.objects.entities.enums.FineStatus;
 import dev.tmmc.ulms.objects.entities.enums.PaymentMethod;
 import dev.tmmc.ulms.objects.entities.enums.PaymentStatus;
 import dev.tmmc.ulms.objects.exceptions.LoanStateException;
+import dev.tmmc.ulms.objects.exceptions.PaymentDeclinedException;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.mapper.PaymentMapper;
 import dev.tmmc.ulms.objects.repositories.FineRepository;
 import dev.tmmc.ulms.objects.repositories.PaymentRepository;
+import dev.tmmc.ulms.objects.services.payment.PaymentGatewayClient;
+import dev.tmmc.ulms.objects.services.payment.PaymentGatewayClient.ChargeResult;
 import dev.tmmc.ulms.security.OwnershipChecker;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,14 +30,17 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final FineRepository fineRepository;
+    private final PaymentGatewayClient gateway;
 
     public PaymentService(PaymentRepository paymentRepository,
-                          FineRepository fineRepository) {
+                          FineRepository fineRepository,
+                          PaymentGatewayClient gateway) {
         this.paymentRepository = paymentRepository;
         this.fineRepository = fineRepository;
+        this.gateway = gateway;
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = PaymentDeclinedException.class)
     public Payment processPayment(Integer fineId, PaymentMethod method, User user) {
         Fine fine = fineRepository.findById(fineId)
                 .orElseThrow(() -> new ResourceNotFoundException("Fine not found: " + fineId));
@@ -43,21 +49,30 @@ public class PaymentService {
             throw new LoanStateException("Fine is already paid.");
         }
 
+        ChargeResult result = gateway.charge(fine.getAmount(), method, fineId);
+
         Payment payment = new Payment();
         payment.setFine(fine);
         payment.setUser(user);
         payment.setAmount(fine.getAmount());
         payment.setPayment_date(OffsetDateTime.now());
         payment.setMethod(method);
-        payment.setStatus(PaymentStatus.COMPLETED);
 
-        fine.setStatus(FineStatus.PAID);
-        fineRepository.save(fine);
+        if (result.success()) {
+            payment.setStatus(PaymentStatus.COMPLETED);
+            payment.setProviderRef(result.providerRef());
+            fine.setStatus(FineStatus.PAID);
+            fineRepository.save(fine);
+            return paymentRepository.save(payment);
+        }
 
-        return paymentRepository.save(payment);
+        payment.setStatus(PaymentStatus.FAILED);
+        payment.setDeclineReason(result.declineReason());
+        paymentRepository.save(payment);
+        throw new PaymentDeclinedException(result.declineReason());
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = PaymentDeclinedException.class)
     public PaymentResponse processPaymentAsResponse(Integer fineId, PaymentMethod method, User user) {
         return PaymentMapper.toResponse(processPayment(fineId, method, user));
     }

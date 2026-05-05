@@ -15,7 +15,9 @@ public class PaymentMapper {
                 p.getAmount(),
                 p.getPayment_date(),
                 p.getMethod(),
-                p.getStatus()
+                p.getStatus(),
+                p.getProviderRef(),
+                p.getDeclineReason()
         );
     }
 }

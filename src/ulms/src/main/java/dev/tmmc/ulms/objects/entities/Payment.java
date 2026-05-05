@@ -27,12 +27,34 @@ public class Payment {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "provider_ref", length = 64)
+    private String providerRef;
+
+    @Column(name = "decline_reason", length = 200)
+    private String declineReason;
+
     public User getUser() {
         return user;
     }
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getProviderRef() {
+        return providerRef;
+    }
+
+    public void setProviderRef(String providerRef) {
+        this.providerRef = providerRef;
+    }
+
+    public String getDeclineReason() {
+        return declineReason;
+    }
+
+    public void setDeclineReason(String declineReason) {
+        this.declineReason = declineReason;
     }
 
     public Payment() {}

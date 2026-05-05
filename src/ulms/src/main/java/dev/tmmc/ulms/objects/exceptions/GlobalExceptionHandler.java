@@ -146,6 +146,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    @ExceptionHandler(PaymentDeclinedException.class)
+    public ResponseEntity<Map<String, Object>> handlePaymentDeclined(PaymentDeclinedException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", HttpStatus.PAYMENT_REQUIRED.value());
+        body.put("error", HttpStatus.PAYMENT_REQUIRED.getReasonPhrase());
+        body.put("message", ex.getMessage());
+        body.put("declineReason", ex.getDeclineReason());
+        body.put("timestamp", OffsetDateTime.now());
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(body);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
