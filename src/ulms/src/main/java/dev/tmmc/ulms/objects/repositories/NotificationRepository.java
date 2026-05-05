@@ -28,6 +28,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     long countByUserAndStatus(User user, NotificationStatus status);
 
+    boolean existsByLoanAndType(Loan loan, NotificationType type);
+
     @Query("SELECT n FROM Notification n WHERE n.user = :user AND n.sent_date >= :from AND n.sent_date <= :to")
     List<Notification> findByUserAndSentDateBetween(
             @Param("user") User user,

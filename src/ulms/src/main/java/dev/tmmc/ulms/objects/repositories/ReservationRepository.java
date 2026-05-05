@@ -23,6 +23,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
                             @Param("status") ReservationStatus status,
                             @Param("before") OffsetDateTime before);
 
+    @Query("SELECT r FROM Reservation r JOIN FETCH r.user JOIN FETCH r.book b " +
+            "WHERE r.status = :status AND b.availableCopies > 0 AND r.notified_at IS NULL " +
+            "ORDER BY r.reserved_at ASC")
+    List<Reservation> findReadyForNotification(@Param("status") ReservationStatus status);
+
     List<Reservation> findByUser(User user);
 
     Page<Reservation> findByUser(User user, Pageable pageable);

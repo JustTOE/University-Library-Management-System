@@ -24,6 +24,9 @@ public class Reservation {
     @JoinColumn(name = "book_id")
     private Book book;
 
+    @Column(name = "notified_at")
+    private OffsetDateTime notified_at;
+
     public Reservation() {}
 
     public Reservation(Integer id, OffsetDateTime reserved_at, Date expiry_date, ReservationStatus status, User user, Book book) {
@@ -33,6 +36,14 @@ public class Reservation {
         this.status = status;
         this.user = user;
         this.book = book;
+    }
+
+    public OffsetDateTime getNotified_at() {
+        return notified_at;
+    }
+
+    public void setNotified_at(OffsetDateTime notified_at) {
+        this.notified_at = notified_at;
     }
 
     public Integer getId() {
