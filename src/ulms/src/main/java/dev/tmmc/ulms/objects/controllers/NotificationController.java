@@ -5,6 +5,8 @@ import dev.tmmc.ulms.objects.dto.response.UnreadCountResponse;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.services.NotificationService;
 import dev.tmmc.ulms.objects.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
+@Tag(name = "Notifications", description = "Read and acknowledge user notifications")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -25,6 +28,7 @@ public class NotificationController {
 
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN') or principal.userId == #userId")
+    @Operation(summary = "List every notification for a user")
     public List<NotificationResponse> getByUser(@PathVariable Integer userId) {
         return userService.findById(userId)
                 .map(notificationService::findByUserAsResponse)
@@ -33,6 +37,7 @@ public class NotificationController {
 
     @GetMapping("/user/{userId}/unread-count")
     @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN') or principal.userId == #userId")
+    @Operation(summary = "Number of unacknowledged notifications for a user (used by the navbar badge)")
     public UnreadCountResponse getUnreadCount(@PathVariable Integer userId) {
         return userService.findById(userId)
                 .map(user -> new UnreadCountResponse(notificationService.unreadCountFor(user)))
@@ -41,6 +46,7 @@ public class NotificationController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('STUDENT','LIBRARIAN','ADMIN')")
+    @Operation(summary = "Find a notification by id (owner or staff only)")
     public NotificationResponse getById(@PathVariable Integer id) {
         return notificationService.findByIdAsResponse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found: " + id));
@@ -48,12 +54,14 @@ public class NotificationController {
 
     @PutMapping("/{id}/acknowledge")
     @PreAuthorize("hasAnyRole('STUDENT','LIBRARIAN','ADMIN')")
+    @Operation(summary = "Mark a notification as acknowledged (owner or staff only)")
     public NotificationResponse acknowledge(@PathVariable Integer id) {
         return notificationService.markAcknowledgedAsResponse(id);
     }
 
     @GetMapping
     @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
+    @Operation(summary = "List every notification in the system (staff only)")
     public List<NotificationResponse> getAll() {
         return notificationService.findAllAsResponse();
     }
