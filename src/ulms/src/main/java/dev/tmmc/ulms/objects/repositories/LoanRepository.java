@@ -23,6 +23,12 @@ public interface LoanRepository extends JpaRepository<Loan, Integer> {
     @Query("SELECT l FROM Loan l WHERE l.due_date < :date AND l.status <> :status")
     List<Loan> findOverdueLoansBefore(@Param("date") Date date, @Param("status") LoanStatus status);
 
+    @Query("SELECT l FROM Loan l JOIN FETCH l.user JOIN FETCH l.book " +
+            "WHERE l.due_date < :today AND l.status NOT IN " +
+            "(dev.tmmc.ulms.objects.entities.enums.LoanStatus.RETURNED, " +
+            " dev.tmmc.ulms.objects.entities.enums.LoanStatus.LOST)")
+    List<Loan> findCandidatesForFineCalculation(@Param("today") Date today);
+
     @Query("SELECT l FROM Loan l JOIN FETCH l.book JOIN FETCH l.user WHERE l.user = :user")
     List<Loan> findByUserWithDetails(@Param("user") User user);
 

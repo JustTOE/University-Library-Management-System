@@ -20,8 +20,11 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,12 +39,25 @@ class FineServiceTest {
     @Test
     void calculateFinePersistsExpectedAmountForOverdueLoan() {
         Loan loan = TestFixtures.loan(TestFixtures.user(), TestFixtures.book(1, 0), LoanStatus.OVERDUE, LocalDate.now().minusDays(4));
+        when(fineRepository.findFirstByLoanAndStatus(loan, FineStatus.UNPAID)).thenReturn(Optional.empty());
         when(fineRepository.save(any(Fine.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Fine fine = fineService.calculateFine(loan);
 
         assertEquals(new BigDecimal("4.00"), fine.getAmount());
         assertEquals(FineStatus.UNPAID, fine.getStatus());
+    }
+
+    @Test
+    void calculateFineReturnsExistingUnpaidFineForSameLoan() {
+        Loan loan = TestFixtures.loan(TestFixtures.user(), TestFixtures.book(1, 0), LoanStatus.OVERDUE, LocalDate.now().minusDays(4));
+        Fine existing = TestFixtures.fine(loan, FineStatus.UNPAID, new BigDecimal("4.00"));
+        when(fineRepository.findFirstByLoanAndStatus(loan, FineStatus.UNPAID)).thenReturn(Optional.of(existing));
+
+        Fine result = fineService.calculateFine(loan);
+
+        assertSame(existing, result);
+        verify(fineRepository, never()).save(any(Fine.class));
     }
 
     @Test

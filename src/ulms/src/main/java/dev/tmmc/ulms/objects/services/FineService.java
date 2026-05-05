@@ -40,6 +40,11 @@ public class FineService {
             throw new LoanStateException("Loan is not overdue; no fine applicable.");
         }
 
+        Optional<Fine> existing = fineRepository.findFirstByLoanAndStatus(loan, FineStatus.UNPAID);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+
         long daysOverdue = today.toEpochDay() - dueDate.toEpochDay();
         BigDecimal amount = FINE_PER_DAY.multiply(BigDecimal.valueOf(daysOverdue));
 

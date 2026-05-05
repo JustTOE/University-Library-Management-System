@@ -20,6 +20,8 @@ public interface FineRepository extends JpaRepository<Fine, Integer> {
 
     List<Fine> findByLoanUserAndStatusNot(User user, FineStatus status);
 
+    Optional<Fine> findFirstByLoanAndStatus(Loan loan, FineStatus status);
+
     @Query("SELECT SUM(f.amount) FROM Fine f WHERE f.loan.user = :user AND f.status <> 'PAID'")
     Optional<BigDecimal> sumUnpaidByUser(@Param("user") User user);
 }
