@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useActionState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { toast } from "sonner";
 
 import {
   AlertDialog,
@@ -23,8 +21,8 @@ import {
   reserveAction,
 } from "@/app/(app)/catalog/[id]/actions";
 import { initialActionState } from "@/app/(app)/catalog/[id]/state";
-import type { ActionState } from "@/app/(app)/catalog/[id]/state";
 import type { BookResponse } from "@/lib/api/books";
+import { useToastEffect } from "@/lib/hooks/use-toast-effect";
 
 export function BookActions({ book }: { book: BookResponse }) {
   const available = book.availableCopies ?? 0;
@@ -34,44 +32,14 @@ export function BookActions({ book }: { book: BookResponse }) {
   return <ReserveAction book={book} />;
 }
 
-/** Closes the dialog and surfaces success/error via Sonner whenever state changes. */
-function useToastState(
-  state: ActionState,
-  closeDialog: () => void,
-) {
-  const router = useRouter();
-  const last = useRef<ActionState>(initialActionState);
-  useEffect(() => {
-    if (state === last.current) return;
-    last.current = state;
-    if (state.status === "success") {
-      toast.success(state.message);
-      closeDialog();
-      router.refresh();
-    } else if (state.status === "error") {
-      const isUnpaidFines = state.message.toLowerCase().includes("unpaid fine");
-      if (isUnpaidFines) {
-        toast.error(state.message, {
-          action: {
-            label: "Pay now",
-            onClick: () => router.push("/my/fines"),
-          },
-        });
-      } else {
-        toast.error(state.message);
-      }
-      closeDialog();
-    }
-  }, [state, closeDialog, router]);
-}
-
 function BorrowAction({ book }: { book: BookResponse }) {
   const [open, setOpen] = useState(false);
   const [state, dispatch, pending] = useActionState(
     borrowAction,
     initialActionState,
   );
-  useToastState(state, () => setOpen(false));
+  const close = () => setOpen(false);
+  useToastEffect(state, { onSuccess: close, onError: close });
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -118,7 +86,8 @@ function ReserveAction({ book }: { book: BookResponse }) {
     reserveAction,
     initialActionState,
   );
-  useToastState(state, () => setOpen(false));
+  const close = () => setOpen(false);
+  useToastEffect(state, { onSuccess: close, onError: close });
 
   return (
     <div className="flex flex-wrap items-center gap-2">
