@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 
 import { Navbar } from "@/components/layout/navbar";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { requireAuth } from "@/lib/auth/guards";
 
 export default async function AppLayout({
@@ -15,11 +17,14 @@ export default async function AppLayout({
   const { user } = await requireAuth(path);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar user={user} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-        {children}
-      </main>
-    </div>
+    <TooltipProvider>
+      <div className="flex min-h-screen flex-col bg-background">
+        <Navbar user={user} />
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+          {children}
+        </main>
+        <Toaster richColors closeButton position="top-right" />
+      </div>
+    </TooltipProvider>
   );
 }
