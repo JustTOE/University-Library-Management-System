@@ -46,6 +46,7 @@ export async function Navbar({
 }) {
   const unread = await fetchUnreadCount(user, token);
   const isStudent = user.role === "STUDENT";
+  const isLibrarian = user.role === "LIBRARIAN" || user.role === "ADMIN";
 
   return (
     <header className="border-b border-border bg-background">
@@ -68,6 +69,26 @@ export async function Navbar({
             </Link>
           </li>
         </ul>
+
+        {isLibrarian ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost" size="default">
+                  Librarian
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem render={<Link href="/librarian/catalog" />}>
+                Catalog
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/librarian/returns" />}>
+                Returns
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
 
         {isStudent ? (
           <Link

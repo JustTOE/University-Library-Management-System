@@ -65,19 +65,24 @@ src/
 │     │     ├ state.ts
 │     │     ├ loading.tsx
 │     │     └ not-found.tsx
-│     └ my/                   # STUDENT-only sub-surface
-│        ├ layout.tsx         # requireRole(STUDENT) + sub-nav
-│        ├ loans/             # UC9 my-loans + renew
-│        ├ reservations/      # UC6 cancel reservation
-│        ├ fines/             # UC10 pay-fine via Dialog (402 inline alert)
-│        └ notifications/     # UC3 acknowledge
+│     ├ my/                   # STUDENT-only sub-surface
+│     │  ├ layout.tsx         # requireRole(STUDENT) + sub-nav
+│     │  ├ loans/             # UC9 my-loans + renew
+│     │  ├ reservations/      # UC6 cancel reservation
+│     │  ├ fines/             # UC10 pay-fine via Dialog (402 inline alert)
+│     │  └ notifications/     # UC3 acknowledge
+│     └ librarian/            # LIBRARIAN/ADMIN sub-surface
+│        ├ layout.tsx         # requireRole(LIBRARIAN, ADMIN) + sub-nav
+│        ├ catalog/           # UC11 list + create + edit + delete
+│        └ returns/           # UC8 process return by loan id
 ├ components/
 │  ├ ui/                      # shadcn primitives (12 added in 5b)
 │  ├ auth/                    # login/register/logout client components
 │  ├ catalog/                 # search-form, table, pagination, book-actions
 │  ├ common/                  # status-pill, empty-state, error-alert
 │  ├ my/                      # renew, cancel-reservation, pay-fine, acknowledge
-│  └ layout/                  # navbar (bell + My library dropdown)
+│  ├ librarian/               # librarian-catalog-table, book-form, delete-book, confirm-return
+│  └ layout/                  # navbar (bell + My library + Librarian dropdowns)
 ├ lib/
 │  ├ api/                     # generated types + typed fetch helpers per resource
 │  ├ auth/                    # session/actions/guards/state
@@ -96,3 +101,12 @@ src/
 - **/my/notifications** — UC3 list + acknowledge; opening `/my/notifications/[id]` auto-marks-as-read.
 
 Navbar (STUDENT only): Catalog · Bell with unread badge · "My library" dropdown · avatar.
+
+## Phase 6 surface
+
+- **/librarian/catalog** — UC11 manage the catalog: search, paginate, edit, delete (handles 409 BookInUse).
+- **/librarian/catalog/new** — UC11 add a new book; per-field validation; 409 ISBN duplicates surface inline next to the ISBN input.
+- **/librarian/catalog/[id]/edit** — UC11 update a book (calls `notFound()` on a missing id).
+- **/librarian/returns** — UC8 process a return: search by loan id, confirm via Server Action, the system handles fines (nightly job) and reservation fulfilment (notification) asynchronously.
+
+Navbar (LIBRARIAN / ADMIN): Catalog · "Librarian" dropdown (Catalog / Returns) · avatar. The seeded admin satisfies the `or hasRole('ADMIN')` half of every Phase 6 endpoint guard, so it can drive the full surface end-to-end without a fresh librarian registration.
