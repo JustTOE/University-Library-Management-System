@@ -1,18 +1,22 @@
 import Link from "next/link";
-import { Library, User as UserIcon } from "lucide-react";
+import { Bell, Library, User as UserIcon } from "lucide-react";
 
 import {
   Avatar,
   AvatarFallback,
 } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogoutFormButton } from "@/components/auth/logout-button";
 import type { UserResponse } from "@/lib/api/auth";
+import { getUnreadCount } from "@/lib/api/notifications";
 
 function initials(name?: string) {
   if (!name) return "?";
@@ -20,10 +24,32 @@ function initials(name?: string) {
   return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "?";
 }
 
-export function Navbar({ user }: { user: UserResponse }) {
+async function fetchUnreadCount(
+  user: UserResponse,
+  token: string,
+): Promise<number> {
+  if (user.role !== "STUDENT" || user.id == null) return 0;
+  try {
+    const result = await getUnreadCount(user.id, { token });
+    return result.count ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function Navbar({
+  user,
+  token,
+}: {
+  user: UserResponse;
+  token: string;
+}) {
+  const unread = await fetchUnreadCount(user, token);
+  const isStudent = user.role === "STUDENT";
+
   return (
     <header className="border-b border-border bg-background">
-      <nav className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4">
+      <nav className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
         <Link
           href="/catalog"
           className="flex items-center gap-2 font-semibold text-foreground"
@@ -42,6 +68,54 @@ export function Navbar({ user }: { user: UserResponse }) {
             </Link>
           </li>
         </ul>
+
+        {isStudent ? (
+          <Link
+            href="/my/notifications"
+            aria-label={
+              unread > 0
+                ? `Notifications: ${unread} unread`
+                : "Notifications"
+            }
+            className="relative inline-flex h-8 items-center justify-center rounded-md px-2 text-foreground hover:bg-muted"
+          >
+            <Bell className="size-4" aria-hidden />
+            {unread > 0 ? (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1.5 -right-1 h-5 min-w-5 rounded-full px-1 text-[10px]"
+              >
+                {unread > 99 ? "99+" : unread}
+              </Badge>
+            ) : null}
+          </Link>
+        ) : null}
+
+        {isStudent ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost" size="default">
+                  My library
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem render={<Link href="/my/loans" />}>
+                Loans
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/my/reservations" />}>
+                Reservations
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/my/fines" />}>
+                Fines
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/my/notifications" />}>
+                Notifications
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
 
         <DropdownMenu>
           <DropdownMenuTrigger

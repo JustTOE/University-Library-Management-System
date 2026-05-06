@@ -24,8 +24,9 @@ Open `http://localhost:3000` and sign in with the seeded admin (`admin@ulms.loca
 
 - JWT returned by `POST /api/auth/login` is stored in an httpOnly cookie named `ulms_session` (Server Action sets it; the Spring backend just returns the token in the response body).
 - Browser never sees the token in JS.
-- `proxy.ts` (Next.js 16's "middleware") redirects unauthenticated requests for `(app)` routes to `/login?redirectTo=…`. It does NOT decode the JWT — role checks live in `src/app/(app)/layout.tsx` via `requireAuth()` / `requireRole()`.
+- `proxy.ts` (Next.js 16's "middleware") redirects unauthenticated requests for `(app)` routes to `/login?redirectTo=…` and forwards the original URL to the layout via an `x-current-path` header so post-login redirects target the requested page. It does NOT decode the JWT — role checks live in `src/app/(app)/layout.tsx` via `requireAuth()` / `requireRole()`.
 - Every backend call goes through the Next.js Node server (Server Components / Server Actions). CORS is irrelevant for our own pages.
+- The SpEL on borrow / reserve / payment requires the body `userId` to match the JWT principal. Server Actions read `session.user.id` server-side and never trust client-supplied IDs.
 
 ## Scripts
 
@@ -55,16 +56,43 @@ src/
 │  │  ├ login/page.tsx
 │  │  └ register/page.tsx
 │  └ (app)/                   # authenticated surface
-│     ├ layout.tsx            # requireAuth + Navbar
-│     └ catalog/page.tsx      # Phase 4 stub; Phase 5 fills in
+│     ├ layout.tsx            # requireAuth + Navbar (with token) + Toaster
+│     ├ catalog/
+│     │  ├ page.tsx           # UC4 browse + search (URL-driven)
+│     │  └ [id]/              # UC5 reserve, UC7 borrow
+│     │     ├ page.tsx
+│     │     ├ actions.ts      # borrowAction, reserveAction
+│     │     ├ state.ts
+│     │     ├ loading.tsx
+│     │     └ not-found.tsx
+│     └ my/                   # STUDENT-only sub-surface
+│        ├ layout.tsx         # requireRole(STUDENT) + sub-nav
+│        ├ loans/             # UC9 my-loans + renew
+│        ├ reservations/      # UC6 cancel reservation
+│        ├ fines/             # UC10 pay-fine via Dialog (402 inline alert)
+│        └ notifications/     # UC3 acknowledge
 ├ components/
-│  ├ ui/                      # shadcn primitives (button, card, input, label,
-│  │                          # field, sonner, dropdown-menu, avatar, separator)
+│  ├ ui/                      # shadcn primitives (12 added in 5b)
 │  ├ auth/                    # login/register/logout client components
-│  └ layout/                  # navbar
+│  ├ catalog/                 # search-form, table, pagination, book-actions
+│  ├ common/                  # status-pill, empty-state, error-alert
+│  ├ my/                      # renew, cancel-reservation, pay-fine, acknowledge
+│  └ layout/                  # navbar (bell + My library dropdown)
 ├ lib/
-│  ├ api/                     # generated types + typed fetch helpers
-│  └ auth/                    # session/actions/guards/state
-├ proxy.ts                    # Next 16 "middleware" rename
+│  ├ api/                     # generated types + typed fetch helpers per resource
+│  ├ auth/                    # session/actions/guards/state
+│  ├ hooks/                   # use-toast-effect (shared transition→toast plumbing)
+│  └ format.ts                # date-fns + Intl.NumberFormat helpers
+├ proxy.ts                    # Next 16 "middleware" rename; sets x-current-path
 └ ...
 ```
+
+## Phase 5 surface
+
+- **/catalog** + **/catalog/[id]** — UC4 browse/search and UC5/UC7 detail with Borrow / Reserve.
+- **/my/loans** — UC9 list + renew.
+- **/my/reservations** — UC6 list + cancel.
+- **/my/fines** — UC10 outstanding balance + pay-fine dialog (gateway path; 402 keeps dialog open with inline decline reason).
+- **/my/notifications** — UC3 list + acknowledge; opening `/my/notifications/[id]` auto-marks-as-read.
+
+Navbar (STUDENT only): Catalog · Bell with unread badge · "My library" dropdown · avatar.

@@ -54,6 +54,8 @@ This password is documented (it is **not** a secret) — rotate it on first logi
 
 The frontend lives at `src/web/ulms-web/` and uses Next.js 16 (App Router, Server Actions), React 19, Tailwind 4, and shadcn/ui (`base-nova` style). The JWT returned by `POST /api/auth/login` is stored in an httpOnly cookie set by the Next.js Server Action — the browser never sees it in JS. Every backend call goes through the Next.js Node server (Server Components / Server Actions), so CORS is irrelevant for our own pages.
 
+Phase 5 ships the student-facing surface: catalog browse + search (UC4), book detail with borrow / reserve (UC5/UC7), `/my/loans` + renew (UC9), `/my/reservations` + cancel (UC6), `/my/fines` + pay-via-gateway (UC10), `/my/notifications` + acknowledge (UC3). The navbar adds a notifications bell with unread badge and a "My library" dropdown for STUDENT users.
+
 Useful scripts (run from `src/web/ulms-web/`):
 
 | Script | What it does |
@@ -62,8 +64,8 @@ Useful scripts (run from `src/web/ulms-web/`):
 | `npm run build` | Production build (`output: 'standalone'`) |
 | `npm run lint` | ESLint |
 | `npm run types:api` | Regenerate `src/lib/api/types.ts` from `http://localhost:8080/v3/api-docs`. Run after backend DTO/contract changes. |
-| `npm test` | Vitest unit tests (`src/lib/api/auth.test.ts` etc.) |
-| `npm run test:e2e` | Playwright smoke test (`e2e/auth-flow.spec.ts`). Requires the Java backend on `:8080`; cleanly skips if it's down. |
+| `npm test` | Vitest unit tests (auth + every Phase 5 API helper + `format.ts`) |
+| `npm run test:e2e` | Playwright smoke tests (`e2e/auth-flow.spec.ts` + `e2e/student-flow.spec.ts`). Requires the Java backend on `:8080`; cleanly skips if it's down. The student spec registers a fresh STUDENT for each run via the public `/api/auth/register` endpoint. |
 | `npm run verify` | `lint && build && test` (no e2e — backend-free) |
 
 `.env.example` documents the only configurable knob (`NEXT_PUBLIC_API_URL=http://localhost:8080`).

@@ -9,17 +9,27 @@ import { SESSION_COOKIE } from "@/lib/auth/session";
  * for the cookie's presence so it can run on the Edge runtime without
  * pulling in jose / jsonwebtoken.
  *
+ * The forwarded request also gains an `x-current-path` header carrying the
+ * original pathname + search; (app)/layout.tsx reads it to wire `requireAuth`'s
+ * redirectTo at the actually-requested URL instead of always falling back to
+ * /catalog.
+ *
  * Public routes (login, register, logout, root, _next, favicon, assets)
  * are excluded by the matcher below.
  */
 export function proxy(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  if (token) return NextResponse.next();
+  const fullPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+
+  if (token) {
+    const headers = new Headers(request.headers);
+    headers.set("x-current-path", fullPath);
+    return NextResponse.next({ request: { headers } });
+  }
 
   const url = request.nextUrl.clone();
-  const redirectTo = `${url.pathname}${url.search}`;
   url.pathname = "/login";
-  url.search = `?redirectTo=${encodeURIComponent(redirectTo)}`;
+  url.search = `?redirectTo=${encodeURIComponent(fullPath)}`;
   return NextResponse.redirect(url);
 }
 

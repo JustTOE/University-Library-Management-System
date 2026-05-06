@@ -14,12 +14,12 @@ export default async function AppLayout({
   // headers so requireAuth's redirectTo points at the *requested* URL.
   const hdrs = await headers();
   const path = hdrs.get("x-current-path") ?? "/catalog";
-  const { user } = await requireAuth(path);
+  const { token, user } = await requireAuth(path);
 
   return (
     <TooltipProvider>
       <div className="flex min-h-screen flex-col bg-background">
-        <Navbar user={user} />
+        <Navbar user={user} token={token} />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
           {children}
         </main>
