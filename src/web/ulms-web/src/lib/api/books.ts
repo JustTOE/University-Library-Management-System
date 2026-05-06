@@ -54,3 +54,30 @@ export function getBookByIsbn(isbn: string, opts: FetchOptions = {}) {
     query: { isbn },
   });
 }
+
+export function createBook(body: CreateBookRequest, opts: FetchOptions = {}) {
+  return apiFetch<BookResponse>("/api/books", {
+    ...opts,
+    method: "POST",
+    body,
+  });
+}
+
+export function updateBook(
+  id: number,
+  body: CreateBookRequest,
+  opts: FetchOptions = {},
+) {
+  return apiFetch<BookResponse>(`/api/books/${id}`, {
+    ...opts,
+    method: "PUT",
+    body,
+  });
+}
+
+export function deleteBook(id: number, opts: FetchOptions = {}) {
+  return apiFetch<void>(`/api/books/${id}`, {
+    ...opts,
+    method: "DELETE",
+  });
+}

@@ -41,3 +41,10 @@ export function listLoansByUserPaged(
 export function getLoanById(id: number, opts: FetchOptions = {}) {
   return apiFetch<LoanResponse>(`/api/loans/${id}`, opts);
 }
+
+export function returnLoan(id: number, opts: FetchOptions = {}) {
+  return apiFetch<LoanResponse>(`/api/loans/${id}/return`, {
+    ...opts,
+    method: "PUT",
+  });
+}

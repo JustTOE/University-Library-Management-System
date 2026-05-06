@@ -7,6 +7,7 @@ import {
   listLoansByUser,
   listLoansByUserPaged,
   renew,
+  returnLoan,
 } from "./loans";
 
 function jsonResponse(status: number, body: unknown) {
@@ -124,5 +125,38 @@ describe("listLoansByUser() / listLoansByUserPaged() / getLoanById()", () => {
     );
     const loan = await getLoanById(11, { fetchImpl });
     expect(loan.id).toBe(11);
+  });
+});
+
+describe("returnLoan()", () => {
+  it("PUTs /api/loans/{id}/return and returns the LoanResponse", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(200, { id: 11, status: "RETURNED" }),
+    );
+
+    const loan = await returnLoan(11, { fetchImpl, token: "tok" });
+
+    const [url, init] = fetchImpl.mock.calls[0]!;
+    expect(String(url)).toMatch(/\/api\/loans\/11\/return$/);
+    expect(init?.method).toBe("PUT");
+    const headers = init?.headers as Record<string, string>;
+    expect(headers.Authorization).toBe("Bearer tok");
+    expect(loan.status).toBe("RETURNED");
+  });
+
+  it("surfaces ApiError(409) when the loan is already returned", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(409, {
+        status: 409,
+        error: "Conflict",
+        message: "Loan is already returned",
+      }),
+    );
+
+    await expect(returnLoan(11, { fetchImpl })).rejects.toMatchObject({
+      name: "ApiError",
+      status: 409,
+      message: "Loan is already returned",
+    });
   });
 });

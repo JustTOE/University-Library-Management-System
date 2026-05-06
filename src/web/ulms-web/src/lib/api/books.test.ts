@@ -2,10 +2,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "./client";
 import {
+  createBook,
+  deleteBook,
   getBookById,
   getBookByIsbn,
   listBooks,
   searchBooks,
+  updateBook,
 } from "./books";
 
 function jsonResponse(status: number, body: unknown) {
@@ -121,5 +124,123 @@ describe("getBookByIsbn()", () => {
       expect(caught).toBeInstanceOf(ApiError);
       expect((caught as ApiError).status).toBe(503);
     }
+  });
+});
+
+describe("createBook()", () => {
+  it("POSTs the CreateBookRequest and returns the BookResponse", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(200, {
+        id: 42,
+        title: "Effective Java",
+        author: "Bloch",
+        isbn: "978-0134685991",
+      }),
+    );
+
+    const book = await createBook(
+      {
+        title: "Effective Java",
+        author: "Bloch",
+        isbn: "978-0134685991",
+        publicationYear: 2018,
+        subject: "Programming",
+        totalCopies: 3,
+        availableCopies: 3,
+        shelfNumber: "PRG-7",
+      },
+      { fetchImpl, token: "tok" },
+    );
+
+    const [url, init] = fetchImpl.mock.calls[0]!;
+    expect(String(url)).toMatch(/\/api\/books$/);
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toMatchObject({
+      title: "Effective Java",
+      isbn: "978-0134685991",
+      totalCopies: 3,
+      availableCopies: 3,
+    });
+    const headers = init?.headers as Record<string, string>;
+    expect(headers.Authorization).toBe("Bearer tok");
+    expect(book.id).toBe(42);
+  });
+
+  it("surfaces ApiError(409) on duplicate ISBN", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(409, {
+        status: 409,
+        error: "Conflict",
+        message: "could not execute statement",
+      }),
+    );
+
+    await expect(
+      createBook(
+        {
+          title: "Dup",
+          author: "X",
+          isbn: "978-0134685991",
+          totalCopies: 1,
+          availableCopies: 1,
+        } as never,
+        { fetchImpl },
+      ),
+    ).rejects.toMatchObject({ name: "ApiError", status: 409 });
+  });
+});
+
+describe("updateBook()", () => {
+  it("PUTs /api/books/{id} and returns the updated BookResponse", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(200, { id: 5, title: "Edited", availableCopies: 2 }),
+    );
+
+    const book = await updateBook(
+      5,
+      {
+        title: "Edited",
+        author: "X",
+        isbn: "111",
+        totalCopies: 2,
+        availableCopies: 2,
+      } as never,
+      { fetchImpl },
+    );
+
+    const [url, init] = fetchImpl.mock.calls[0]!;
+    expect(String(url)).toMatch(/\/api\/books\/5$/);
+    expect(init?.method).toBe("PUT");
+    expect(book.title).toBe("Edited");
+  });
+});
+
+describe("deleteBook()", () => {
+  it("DELETEs /api/books/{id} and resolves to undefined on 204", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 204 }));
+
+    const result = await deleteBook(5, { fetchImpl });
+
+    const [url, init] = fetchImpl.mock.calls[0]!;
+    expect(String(url)).toMatch(/\/api\/books\/5$/);
+    expect(init?.method).toBe("DELETE");
+    expect(result).toBeUndefined();
+  });
+
+  it("surfaces ApiError(409) on BookInUse", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(409, {
+        status: 409,
+        error: "Conflict",
+        message: "Book has active loans and cannot be deleted: 5",
+      }),
+    );
+
+    await expect(deleteBook(5, { fetchImpl })).rejects.toMatchObject({
+      status: 409,
+      message: "Book has active loans and cannot be deleted: 5",
+    });
   });
 });
