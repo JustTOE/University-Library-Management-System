@@ -7,15 +7,17 @@ import { Label } from "@/components/ui/label";
 
 export function CatalogSearchForm({
   defaults,
+  action = "/catalog",
 }: {
   defaults: { title?: string; author?: string; subject?: string };
+  action?: string;
 }) {
   const hasFilters =
     !!(defaults.title || defaults.author || defaults.subject);
   return (
     <form
       method="GET"
-      action="/catalog"
+      action={action}
       className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4"
       role="search"
       aria-label="Search the catalog"
@@ -55,7 +57,7 @@ export function CatalogSearchForm({
         </Button>
         {hasFilters ? (
           <Link
-            href="/catalog"
+            href={action}
             className={buttonVariants({ variant: "ghost" })}
           >
             Clear
