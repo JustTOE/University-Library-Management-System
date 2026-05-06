@@ -8,7 +8,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -56,7 +55,7 @@ export function Navbar({ user }: { user: UserResponse }) {
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="flex flex-col gap-0.5 px-2 py-1.5">
+            <div className="flex flex-col gap-0.5 px-2 py-1.5">
               <span className="text-sm font-medium text-foreground">
                 {user.name ?? user.email}
               </span>
@@ -66,7 +65,7 @@ export function Navbar({ user }: { user: UserResponse }) {
                   {user.role}
                 </span>
               )}
-            </DropdownMenuLabel>
+            </div>
             <DropdownMenuSeparator />
             <LogoutFormButton />
           </DropdownMenuContent>

@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ULMS web (Next.js + shadcn/ui)
 
-## Getting Started
+Frontend for the University Library Management System. Next.js 16 (App Router, Server Actions), React 19, TypeScript, Tailwind 4, shadcn/ui (`base-nova` style).
 
-First, run the development server:
+## Quick start
 
-```bash
+Backend prerequisite: the Spring Boot service at `http://localhost:8080`. See the repo root README for how to start Postgres + the JVM. Once the backend's `/v3/api-docs` is reachable:
+
+```sh
+cp .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000` and sign in with the seeded admin (`admin@ulms.local` / `admin-change-me-now`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Default | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8080` | Server-side fetch base URL. Read by `src/lib/api/client.ts`. The browser never makes direct calls to this URL. |
 
-## Learn More
+## Auth shape
 
-To learn more about Next.js, take a look at the following resources:
+- JWT returned by `POST /api/auth/login` is stored in an httpOnly cookie named `ulms_session` (Server Action sets it; the Spring backend just returns the token in the response body).
+- Browser never sees the token in JS.
+- `proxy.ts` (Next.js 16's "middleware") redirects unauthenticated requests for `(app)` routes to `/login?redirectTo=…`. It does NOT decode the JWT — role checks live in `src/app/(app)/layout.tsx` via `requireAuth()` / `requireRole()`.
+- Every backend call goes through the Next.js Node server (Server Components / Server Actions). CORS is irrelevant for our own pages.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Script | What it does |
+|---|---|
+| `npm run dev` | Dev server on `:3000` |
+| `npm run build` | Production build (`output: 'standalone'`) |
+| `npm run start` | Run the standalone build |
+| `npm run lint` | ESLint |
+| `npm run types:api` | Regenerate `src/lib/api/types.ts` from `http://localhost:8080/v3/api-docs`. Run after backend DTO/contract changes. |
+| `npm test` | Vitest unit tests |
+| `npm run test:e2e` | Playwright smoke test (needs backend running). Skips cleanly if `/v3/api-docs` is unreachable. |
+| `npm run test:e2e:ui` | Playwright in UI mode for debugging |
+| `npm run verify` | `lint && build && test` (no e2e — backend-free) |
 
-## Deploy on Vercel
+## Layout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├ app/                       # App Router routes
+│  ├ layout.tsx               # root: fonts, metadata
+│  ├ page.tsx                 # / → /catalog or /login depending on session
+│  ├ error.tsx                # client error boundary
+│  ├ not-found.tsx            # 404
+│  ├ (auth)/                  # unauthenticated surface
+│  │  ├ layout.tsx            # centered Card; bounces authed users to /catalog
+│  │  ├ login/page.tsx
+│  │  └ register/page.tsx
+│  └ (app)/                   # authenticated surface
+│     ├ layout.tsx            # requireAuth + Navbar
+│     └ catalog/page.tsx      # Phase 4 stub; Phase 5 fills in
+├ components/
+│  ├ ui/                      # shadcn primitives (button, card, input, label,
+│  │                          # field, sonner, dropdown-menu, avatar, separator)
+│  ├ auth/                    # login/register/logout client components
+│  └ layout/                  # navbar
+├ lib/
+│  ├ api/                     # generated types + typed fetch helpers
+│  └ auth/                    # session/actions/guards/state
+├ proxy.ts                    # Next 16 "middleware" rename
+└ ...
+```

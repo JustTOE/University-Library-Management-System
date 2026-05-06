@@ -11,11 +11,8 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import {
-  initialActionState,
-  loginAction,
-  type ActionState,
-} from "@/lib/auth/actions";
+import { loginAction } from "@/lib/auth/actions";
+import { initialActionState, type ActionState } from "@/lib/auth/state";
 
 type Props = {
   redirectTo: string;

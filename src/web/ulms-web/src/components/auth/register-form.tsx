@@ -11,11 +11,8 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import {
-  initialActionState,
-  registerAction,
-  type ActionState,
-} from "@/lib/auth/actions";
+import { registerAction } from "@/lib/auth/actions";
+import { initialActionState, type ActionState } from "@/lib/auth/state";
 
 export function RegisterForm() {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(

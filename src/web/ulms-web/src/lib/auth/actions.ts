@@ -7,19 +7,7 @@ import { ApiError } from "@/lib/api/client";
 import { login, register } from "@/lib/api/auth";
 
 import { SESSION_COOKIE } from "./session";
-
-export type ActionState =
-  | { status: "idle" }
-  | {
-      status: "error";
-      message: string;
-      fieldErrors?: Record<string, string>;
-      lockedUntil?: string;
-      retryAfter?: number;
-    }
-  | { status: "success"; message: string };
-
-export const initialActionState: ActionState = { status: "idle" };
+import type { ActionState } from "./state";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60; // matches backend JWT lifetime
 
@@ -111,7 +99,10 @@ export async function logoutAction(): Promise<void> {
 /* Helpers                                                                     */
 /* -------------------------------------------------------------------------- */
 
-function apiErrorToActionState(error: unknown, fallback: string): ActionState {
+async function apiErrorToActionState(
+  error: unknown,
+  fallback: string,
+): Promise<ActionState> {
   if (error instanceof ApiError) {
     return {
       status: "error",
