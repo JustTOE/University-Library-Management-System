@@ -1,12 +1,8 @@
-export default function Home() {
-  return (
-    <main className="flex flex-1 items-center justify-center p-8">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold">ULMS</h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          University Library Management System
-        </p>
-      </div>
-    </main>
-  );
+import { redirect } from "next/navigation";
+
+import { readSession } from "@/lib/auth/session";
+
+export default async function HomePage() {
+  const session = await readSession();
+  redirect(session ? "/catalog" : "/login");
 }
