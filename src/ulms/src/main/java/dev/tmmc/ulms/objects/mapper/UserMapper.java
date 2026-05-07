@@ -16,7 +16,8 @@ public class UserMapper {
                 user.getUniversityId(),
                 user.getStaffId(),
                 user.getPhone(),
-                user.getRole()
+                user.getRole(),
+                user.isActive()
         );
     }
 

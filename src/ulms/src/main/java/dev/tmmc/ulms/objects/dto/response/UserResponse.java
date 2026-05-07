@@ -9,5 +9,6 @@ public record UserResponse(
         String universityId,
         String staffId,
         String phone,
-        UserRole role
+        UserRole role,
+        boolean isActive
 ) {}

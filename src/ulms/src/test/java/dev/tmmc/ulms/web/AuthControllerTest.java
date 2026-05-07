@@ -90,7 +90,7 @@ class AuthControllerTest {
 
     @Test
     void registerSuccessReturns201() throws Exception {
-        UserResponse user = new UserResponse(7, "Bob", "bob@example.com", "U-BOB", null, null, UserRole.STUDENT);
+        UserResponse user = new UserResponse(7, "Bob", "bob@example.com", "U-BOB", null, null, UserRole.STUDENT, true);
         when(authService.register(any(RegisterRequest.class))).thenReturn(user);
 
         mockMvc.perform(post("/api/auth/register")

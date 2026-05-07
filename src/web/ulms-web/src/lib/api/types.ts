@@ -754,6 +754,7 @@ export interface components {
             phone?: string;
             /** @enum {string} */
             role?: "STUDENT" | "LIBRARIAN" | "ADMIN";
+            isActive?: boolean;
         };
         NotificationResponse: {
             /** Format: int32 */
