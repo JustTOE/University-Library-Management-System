@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Bell, Library, User as UserIcon } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 import {
   Avatar,
@@ -14,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { LogoutFormButton } from "@/components/auth/logout-button";
 import type { UserResponse } from "@/lib/api/auth";
 import { getUnreadCount } from "@/lib/api/notifications";
@@ -48,6 +50,8 @@ export async function Navbar({
   const isStudent = user.role === "STUDENT";
   const isLibrarian = user.role === "LIBRARIAN" || user.role === "ADMIN";
   const isAdmin = user.role === "ADMIN";
+  const t = await getTranslations("navbar");
+  const tAuth = await getTranslations("auth");
 
   return (
     <header className="border-b border-border bg-background">
@@ -64,9 +68,9 @@ export async function Navbar({
           <li>
             <Link
               href="/catalog"
-              className="rounded-md px-3 py-1.5 text-sm text-foreground hover:bg-muted"
+              className="rounded-md px-3 py-1.5 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              Catalog
+              {t("catalog")}
             </Link>
           </li>
         </ul>
@@ -76,16 +80,16 @@ export async function Navbar({
             <DropdownMenuTrigger
               render={
                 <Button variant="ghost" size="default">
-                  Librarian
+                  {t("librarian")}
                 </Button>
               }
             />
             <DropdownMenuContent align="end">
               <DropdownMenuItem render={<Link href="/librarian/catalog" />}>
-                Catalog
+                {t("librarianItems.catalog")}
               </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/librarian/returns" />}>
-                Returns
+                {t("librarianItems.returns")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -96,13 +100,13 @@ export async function Navbar({
             <DropdownMenuTrigger
               render={
                 <Button variant="ghost" size="default">
-                  Admin
+                  {t("admin")}
                 </Button>
               }
             />
             <DropdownMenuContent align="end">
               <DropdownMenuItem render={<Link href="/admin/users" />}>
-                Users
+                {t("adminItems.users")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -113,10 +117,10 @@ export async function Navbar({
             href="/my/notifications"
             aria-label={
               unread > 0
-                ? `Notifications: ${unread} unread`
-                : "Notifications"
+                ? t("notificationsLabelWithCount", { count: unread })
+                : t("notificationsLabel")
             }
-            className="relative inline-flex h-8 items-center justify-center rounded-md px-2 text-foreground hover:bg-muted"
+            className="relative inline-flex h-8 items-center justify-center rounded-md px-2 text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Bell className="size-4" aria-hidden />
             {unread > 0 ? (
@@ -135,31 +139,33 @@ export async function Navbar({
             <DropdownMenuTrigger
               render={
                 <Button variant="ghost" size="default">
-                  My library
+                  {t("myLibrary")}
                 </Button>
               }
             />
             <DropdownMenuContent align="end">
               <DropdownMenuItem render={<Link href="/my/loans" />}>
-                Loans
+                {t("myLibraryItems.loans")}
               </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/my/reservations" />}>
-                Reservations
+                {t("myLibraryItems.reservations")}
               </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/my/fines" />}>
-                Fines
+                {t("myLibraryItems.fines")}
               </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/my/notifications" />}>
-                Notifications
+                {t("myLibraryItems.notifications")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : null}
 
+        <LocaleSwitcher />
+
         <DropdownMenu>
           <DropdownMenuTrigger
             className="flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Account menu"
+            aria-label={t("accountMenu")}
           >
             <Avatar className="size-8">
               <AvatarFallback>
@@ -180,7 +186,7 @@ export async function Navbar({
               )}
             </div>
             <DropdownMenuSeparator />
-            <LogoutFormButton />
+            <LogoutFormButton label={tAuth("signOut")} />
           </DropdownMenuContent>
         </DropdownMenu>
       </nav>

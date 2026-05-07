@@ -1,0 +1,153 @@
+{
+  "common": {
+    "appName": "ULMS",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "clear": "Clear",
+    "search": "Search",
+    "edit": "Edit",
+    "view": "View",
+    "create": "Create",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "locale": {
+    "switchLabel": "Language",
+    "english": "English",
+    "romanian": "Romanian",
+    "switchToEnglish": "Switch to English",
+    "switchToRomanian": "Switch to Romanian"
+  },
+  "navbar": {
+    "catalog": "Catalog",
+    "notificationsLabel": "Notifications",
+    "notificationsLabelWithCount": "Notifications: {count} unread",
+    "myLibrary": "My library",
+    "librarian": "Librarian",
+    "admin": "Admin",
+    "accountMenu": "Account menu",
+    "myLibraryItems": {
+      "loans": "Loans",
+      "reservations": "Reservations",
+      "fines": "Fines",
+      "notifications": "Notifications"
+    },
+    "librarianItems": {
+      "catalog": "Catalog",
+      "returns": "Returns"
+    },
+    "adminItems": {
+      "users": "Users"
+    }
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "loginSubtitle": "Welcome back to ULMS.",
+    "registerTitle": "Create an account",
+    "registerSubtitle": "Sign up as a student to start borrowing.",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full name",
+    "universityId": "University ID",
+    "phoneOptional": "Phone (optional)",
+    "passwordHint": "At least 8 characters.",
+    "submitLogin": "Sign in",
+    "submitLoggingIn": "Signing in…",
+    "submitRegister": "Create account",
+    "submitRegistering": "Creating account…",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "register": "Register",
+    "login": "Sign in",
+    "signOut": "Sign out"
+  },
+  "admin": {
+    "title": "Admin",
+    "subtitle": "Manage users and global settings.",
+    "users": {
+      "title": "Users",
+      "subtitle": "Add, edit, deactivate, or remove user accounts.",
+      "newUser": "New user",
+      "createTitle": "New user",
+      "editTitle": "Edit user",
+      "backToUsers": "← Back to users",
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "identifier": "Identifier",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "roleStudent": "Student",
+      "roleLibrarian": "Librarian",
+      "roleAdmin": "Admin",
+      "anyRole": "Any role",
+      "searchLabel": "Search",
+      "searchPlaceholder": "Name, email, university or staff ID",
+      "roleLabel": "Role",
+      "emptyTitle": "No users match your filters",
+      "emptyDescription": "Try a different search or clear filters.",
+      "clearFilters": "Clear filters",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "deactivateConfirmTitle": "Deactivate {name}?",
+      "deactivateConfirmDescription": "The user will be unable to sign in until reactivated.",
+      "reactivateConfirmTitle": "Reactivate {name}?",
+      "reactivateConfirmDescription": "The user will be able to sign in again.",
+      "deleteConfirmTitle": "Delete {name}?",
+      "deleteConfirmDescription": "This permanently deletes the user record and cannot be undone. Users with loans or fines on record cannot be deleted.",
+      "keepUser": "Keep user",
+      "deleteUser": "Delete user",
+      "tabProfile": "Profile",
+      "tabLoans": "Loans",
+      "tabFines": "Fines",
+      "fields": {
+        "name": "Full name",
+        "email": "Email",
+        "role": "Role",
+        "universityId": "University ID",
+        "staffId": "Staff ID",
+        "phoneOptional": "Phone (optional)",
+        "password": "Password",
+        "passwordOptionalEdit": "(leave blank to keep current)",
+        "passwordHintCreate": "At least 8 characters.",
+        "passwordHintEdit": "Type a new password to update; leave blank to keep the existing one."
+      },
+      "submit": {
+        "create": "Create user",
+        "save": "Save changes"
+      },
+      "history": {
+        "loansEmptyTitle": "No loans yet",
+        "loansEmptyDescription": "This user has no past or current loans on record.",
+        "finesEmptyTitle": "No fines on record",
+        "finesEmptyDescription": "This user has not been charged any fines.",
+        "loanBook": "Book",
+        "loanBorrowed": "Borrowed",
+        "loanDue": "Due",
+        "loanStatus": "Status",
+        "loanRenewals": "Renewals",
+        "fineId": "Fine",
+        "fineCalculated": "Calculated",
+        "fineAmount": "Amount",
+        "fineStatus": "Status"
+      },
+      "userNotFoundTitle": "User not found",
+      "userNotFoundDescription": "This user no longer exists or has been deleted."
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "couldNotLoadCatalog": "Could not load the catalog.",
+    "couldNotLoadUsers": "Could not load users.",
+    "signInAgain": "Sign in again to continue."
+  }
+}

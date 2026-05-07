@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { ActiveToggleButton } from "@/components/admin/active-toggle-button";
 import { DeleteUserButton } from "@/components/admin/delete-user-button";
@@ -23,14 +24,20 @@ import {
 } from "@/lib/api/users";
 import { readSession } from "@/lib/auth/session";
 
-function RoleBadge({ role }: { role?: string }) {
+function RoleBadge({
+  role,
+  labels,
+}: {
+  role?: string;
+  labels: { admin: string; librarian: string; student: string };
+}) {
   switch (role) {
     case "ADMIN":
-      return <Badge variant="default">Admin</Badge>;
+      return <Badge variant="default">{labels.admin}</Badge>;
     case "LIBRARIAN":
-      return <Badge variant="secondary">Librarian</Badge>;
+      return <Badge variant="secondary">{labels.librarian}</Badge>;
     case "STUDENT":
-      return <Badge variant="outline">Student</Badge>;
+      return <Badge variant="outline">{labels.student}</Badge>;
     default:
       return <Badge variant="outline">—</Badge>;
   }
@@ -75,12 +82,20 @@ export default async function UserDetailPage({
   const session = await readSession();
   const token = session?.token;
 
-  const [user, history] = await Promise.all([
+  const [user, history, t, tCommon, tFields] = await Promise.all([
     loadUser(userId, token),
     loadHistory(userId, token),
+    getTranslations("admin.users"),
+    getTranslations("common"),
+    getTranslations("admin.users.fields"),
   ]);
 
   const isActive = Boolean(user.isActive);
+  const roleLabels = {
+    admin: t("roleAdmin"),
+    librarian: t("roleLibrarian"),
+    student: t("roleStudent"),
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -89,14 +104,14 @@ export default async function UserDetailPage({
           href="/admin/users"
           className={buttonVariants({ variant: "ghost", size: "sm" })}
         >
-          ← Back to users
+          {t("backToUsers")}
         </Link>
         <div className="flex items-center gap-2">
           <Link
             href={`/admin/users/${userId}/edit`}
             className={buttonVariants({ variant: "outline", size: "sm" })}
           >
-            Edit
+            {tCommon("edit")}
           </Link>
           <ActiveToggleButton
             userId={userId}
@@ -112,9 +127,9 @@ export default async function UserDetailPage({
 
       <Tabs defaultValue="profile" className="gap-4">
         <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="loans">Loans</TabsTrigger>
-          <TabsTrigger value="fines">Fines</TabsTrigger>
+          <TabsTrigger value="profile">{t("tabProfile")}</TabsTrigger>
+          <TabsTrigger value="loans">{t("tabLoans")}</TabsTrigger>
+          <TabsTrigger value="fines">{t("tabFines")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -122,10 +137,10 @@ export default async function UserDetailPage({
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 {user.name ?? "—"}
-                <RoleBadge role={user.role} />
+                <RoleBadge role={user.role} labels={roleLabels} />
                 {!isActive ? (
                   <Badge variant="outline" className="text-muted-foreground">
-                    Inactive
+                    {t("inactive")}
                   </Badge>
                 ) : null}
               </CardTitle>
@@ -134,25 +149,25 @@ export default async function UserDetailPage({
               <dl className="grid gap-3 sm:grid-cols-2 text-sm">
                 <div>
                   <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Email
+                    {tFields("email")}
                   </dt>
                   <dd className="font-medium">{user.email ?? "—"}</dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                    University ID
+                    {tFields("universityId")}
                   </dt>
                   <dd className="font-medium">{user.universityId ?? "—"}</dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Staff ID
+                    {tFields("staffId")}
                   </dt>
                   <dd className="font-medium">{user.staffId ?? "—"}</dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Phone
+                    {tFields("phoneOptional")}
                   </dt>
                   <dd className="font-medium">{user.phone ?? "—"}</dd>
                 </div>

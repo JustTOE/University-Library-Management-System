@@ -1,0 +1,153 @@
+{
+  "common": {
+    "appName": "ULMS",
+    "save": "Salvează",
+    "cancel": "Anulează",
+    "delete": "Șterge",
+    "confirm": "Confirmă",
+    "back": "Înapoi",
+    "clear": "Curăță",
+    "search": "Caută",
+    "edit": "Editează",
+    "view": "Vezi",
+    "create": "Creează",
+    "loading": "Se încarcă…",
+    "saving": "Se salvează…",
+    "yes": "Da",
+    "no": "Nu"
+  },
+  "locale": {
+    "switchLabel": "Limbă",
+    "english": "Engleză",
+    "romanian": "Română",
+    "switchToEnglish": "Schimbă în engleză",
+    "switchToRomanian": "Schimbă în română"
+  },
+  "navbar": {
+    "catalog": "Catalog",
+    "notificationsLabel": "Notificări",
+    "notificationsLabelWithCount": "Notificări: {count} necitite",
+    "myLibrary": "Biblioteca mea",
+    "librarian": "Bibliotecar",
+    "admin": "Administrator",
+    "accountMenu": "Meniu cont",
+    "myLibraryItems": {
+      "loans": "Împrumuturi",
+      "reservations": "Rezervări",
+      "fines": "Penalizări",
+      "notifications": "Notificări"
+    },
+    "librarianItems": {
+      "catalog": "Catalog",
+      "returns": "Returnări"
+    },
+    "adminItems": {
+      "users": "Utilizatori"
+    }
+  },
+  "auth": {
+    "loginTitle": "Autentificare",
+    "loginSubtitle": "Bun venit înapoi la ULMS.",
+    "registerTitle": "Creează un cont",
+    "registerSubtitle": "Înregistrează-te ca student pentru a începe să împrumuți.",
+    "email": "Email",
+    "password": "Parolă",
+    "name": "Nume complet",
+    "universityId": "Număr matricol",
+    "phoneOptional": "Telefon (opțional)",
+    "passwordHint": "Cel puțin 8 caractere.",
+    "submitLogin": "Autentifică-te",
+    "submitLoggingIn": "Se autentifică…",
+    "submitRegister": "Creează contul",
+    "submitRegistering": "Se creează contul…",
+    "noAccount": "Nu ai un cont?",
+    "haveAccount": "Ai deja un cont?",
+    "register": "Înregistrează-te",
+    "login": "Autentifică-te",
+    "signOut": "Deconectează-te"
+  },
+  "admin": {
+    "title": "Administrator",
+    "subtitle": "Gestionează utilizatorii și setările globale.",
+    "users": {
+      "title": "Utilizatori",
+      "subtitle": "Adaugă, editează, dezactivează sau șterge conturi de utilizatori.",
+      "newUser": "Utilizator nou",
+      "createTitle": "Utilizator nou",
+      "editTitle": "Editează utilizatorul",
+      "backToUsers": "← Înapoi la utilizatori",
+      "table": {
+        "name": "Nume",
+        "email": "Email",
+        "role": "Rol",
+        "identifier": "Identificator",
+        "status": "Status",
+        "actions": "Acțiuni"
+      },
+      "active": "Activ",
+      "inactive": "Inactiv",
+      "roleStudent": "Student",
+      "roleLibrarian": "Bibliotecar",
+      "roleAdmin": "Administrator",
+      "anyRole": "Orice rol",
+      "searchLabel": "Caută",
+      "searchPlaceholder": "Nume, email, număr matricol sau ID angajat",
+      "roleLabel": "Rol",
+      "emptyTitle": "Niciun utilizator nu corespunde filtrelor",
+      "emptyDescription": "Încearcă o căutare diferită sau curăță filtrele.",
+      "clearFilters": "Curăță filtrele",
+      "deactivate": "Dezactivează",
+      "reactivate": "Reactivează",
+      "deactivateConfirmTitle": "Dezactivezi {name}?",
+      "deactivateConfirmDescription": "Utilizatorul nu se va putea autentifica până la reactivare.",
+      "reactivateConfirmTitle": "Reactivezi {name}?",
+      "reactivateConfirmDescription": "Utilizatorul se va putea autentifica din nou.",
+      "deleteConfirmTitle": "Ștergi {name}?",
+      "deleteConfirmDescription": "Această acțiune șterge definitiv contul utilizatorului și nu poate fi anulată. Utilizatorii cu împrumuturi sau penalizări înregistrate nu pot fi șterși.",
+      "keepUser": "Păstrează utilizatorul",
+      "deleteUser": "Șterge utilizatorul",
+      "tabProfile": "Profil",
+      "tabLoans": "Împrumuturi",
+      "tabFines": "Penalizări",
+      "fields": {
+        "name": "Nume complet",
+        "email": "Email",
+        "role": "Rol",
+        "universityId": "Număr matricol",
+        "staffId": "ID angajat",
+        "phoneOptional": "Telefon (opțional)",
+        "password": "Parolă",
+        "passwordOptionalEdit": "(lasă gol pentru a păstra parola actuală)",
+        "passwordHintCreate": "Cel puțin 8 caractere.",
+        "passwordHintEdit": "Introdu o parolă nouă pentru a actualiza; lasă gol pentru a păstra parola actuală."
+      },
+      "submit": {
+        "create": "Creează utilizatorul",
+        "save": "Salvează modificările"
+      },
+      "history": {
+        "loansEmptyTitle": "Niciun împrumut încă",
+        "loansEmptyDescription": "Acest utilizator nu are împrumuturi în istoric sau în curs.",
+        "finesEmptyTitle": "Nicio penalizare înregistrată",
+        "finesEmptyDescription": "Acest utilizator nu a primit nicio penalizare.",
+        "loanBook": "Carte",
+        "loanBorrowed": "Împrumutat",
+        "loanDue": "Termen",
+        "loanStatus": "Status",
+        "loanRenewals": "Prelungiri",
+        "fineId": "Penalizare",
+        "fineCalculated": "Calculată",
+        "fineAmount": "Sumă",
+        "fineStatus": "Status"
+      },
+      "userNotFoundTitle": "Utilizatorul nu a fost găsit",
+      "userNotFoundDescription": "Acest utilizator nu mai există sau a fost șters."
+    }
+  },
+  "errors": {
+    "generic": "A apărut o eroare",
+    "couldNotLoadCatalog": "Nu s-a putut încărca catalogul.",
+    "couldNotLoadUsers": "Nu s-au putut încărca utilizatorii.",
+    "signInAgain": "Te rugăm să te autentifici din nou."
+  }
+}

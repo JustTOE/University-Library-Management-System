@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import { FineStatusBadge } from "@/components/common/status-pill";
 import { EmptyState } from "@/components/common/empty-state";
 import {
@@ -13,12 +15,13 @@ import { formatDateOnly, formatMoney } from "@/lib/format";
 
 type FineResponse = components["schemas"]["FineResponse"];
 
-export function UserHistoryFines({ fines }: { fines: FineResponse[] }) {
+export async function UserHistoryFines({ fines }: { fines: FineResponse[] }) {
+  const t = await getTranslations("admin.users.history");
   if (fines.length === 0) {
     return (
       <EmptyState
-        title="No fines on record"
-        description="This user has not been charged any fines."
+        title={t("finesEmptyTitle")}
+        description={t("finesEmptyDescription")}
       />
     );
   }
@@ -27,10 +30,10 @@ export function UserHistoryFines({ fines }: { fines: FineResponse[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Fine</TableHead>
-            <TableHead className="hidden sm:table-cell">Calculated</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{t("fineId")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("fineCalculated")}</TableHead>
+            <TableHead className="text-right">{t("fineAmount")}</TableHead>
+            <TableHead>{t("fineStatus")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

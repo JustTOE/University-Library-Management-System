@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 
 import { setActiveAction } from "@/app/(app)/admin/users/actions";
 import { initialActionState } from "@/app/(app)/admin/users/state";
@@ -28,6 +29,8 @@ export function ActiveToggleButton({
   name: string;
   isActive: boolean;
 }) {
+  const t = useTranslations("admin.users");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [state, dispatch, pending] = useActionState(
     setActiveAction,
@@ -48,19 +51,21 @@ export function ActiveToggleButton({
             disabled={pending}
             data-testid={`toggle-active-${userId}`}
           >
-            {willActivate ? "Reactivate" : "Deactivate"}
+            {willActivate ? t("reactivate") : t("deactivate")}
           </Button>
         }
       />
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {willActivate ? "Reactivate" : "Deactivate"} {name}?
+            {willActivate
+              ? t("reactivateConfirmTitle", { name })
+              : t("deactivateConfirmTitle", { name })}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {willActivate
-              ? "The user will be able to sign in again."
-              : "The user will be unable to sign in until reactivated."}
+              ? t("reactivateConfirmDescription")
+              : t("deactivateConfirmDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <form action={dispatch}>
@@ -71,9 +76,9 @@ export function ActiveToggleButton({
             value={willActivate ? "true" : "false"}
           />
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction type="submit" disabled={pending}>
-              {willActivate ? "Reactivate" : "Deactivate"}
+              {willActivate ? t("reactivate") : t("deactivate")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </form>

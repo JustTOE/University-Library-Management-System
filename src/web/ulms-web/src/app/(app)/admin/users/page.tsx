@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { CatalogPagination } from "@/components/catalog/catalog-pagination";
 import { UserSearchForm } from "@/components/admin/user-search-form";
@@ -49,6 +50,8 @@ export default async function AdminUsersPage({
 
   const session = await readSession();
   const token = session?.token;
+  const t = await getTranslations("admin.users");
+  const tErr = await getTranslations("errors");
 
   let allUsers: UserResponse[] = [];
   let errorMessage: string | null = null;
@@ -58,8 +61,8 @@ export default async function AdminUsersPage({
   } catch (error) {
     errorMessage =
       error instanceof ApiError
-        ? error.message || "Could not load users."
-        : "Could not load users.";
+        ? error.message || tErr("couldNotLoadUsers")
+        : tErr("couldNotLoadUsers");
   }
 
   const qLower = q.toLowerCase();
@@ -80,17 +83,17 @@ export default async function AdminUsersPage({
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-semibold tracking-tight">Users</h2>
-          <p className="text-sm text-muted-foreground">
-            Add, edit, deactivate, or remove user accounts.
-          </p>
+          <h2 className="text-xl font-semibold tracking-tight">
+            {t("title")}
+          </h2>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Link
           href="/admin/users/new"
           className={buttonVariants()}
           data-testid="new-user"
         >
-          New user
+          {t("newUser")}
         </Link>
       </div>
 

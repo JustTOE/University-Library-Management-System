@@ -1,16 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const ROLES = [
-  { value: "", label: "Any role" },
-  { value: "STUDENT", label: "Student" },
-  { value: "LIBRARIAN", label: "Librarian" },
-  { value: "ADMIN", label: "Admin" },
-] as const;
 
 export function UserSearchForm({
   defaults,
@@ -19,27 +15,35 @@ export function UserSearchForm({
   defaults: { q?: string; role?: string };
   action?: string;
 }) {
+  const t = useTranslations("admin.users");
+  const tCommon = useTranslations("common");
   const hasFilters = !!(defaults.q || defaults.role);
+  const ROLES = [
+    { value: "", label: t("anyRole") },
+    { value: "STUDENT", label: t("roleStudent") },
+    { value: "LIBRARIAN", label: t("roleLibrarian") },
+    { value: "ADMIN", label: t("roleAdmin") },
+  ];
   return (
     <form
       method="GET"
       action={action}
       className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4"
       role="search"
-      aria-label="Search users"
+      aria-label={t("searchLabel")}
     >
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="flex flex-col gap-1 sm:col-span-2">
-          <Label htmlFor="user-q">Search</Label>
+          <Label htmlFor="user-q">{t("searchLabel")}</Label>
           <Input
             id="user-q"
             name="q"
             defaultValue={defaults.q ?? ""}
-            placeholder="Name, email, university or staff ID"
+            placeholder={t("searchPlaceholder")}
           />
         </div>
         <div className="flex flex-col gap-1">
-          <Label htmlFor="user-role">Role</Label>
+          <Label htmlFor="user-role">{t("roleLabel")}</Label>
           <select
             id="user-role"
             name="role"
@@ -56,11 +60,11 @@ export function UserSearchForm({
       </div>
       <div className="flex items-center gap-2">
         <Button type="submit">
-          <Search className="size-4" aria-hidden /> Search
+          <Search className="size-4" aria-hidden /> {tCommon("search")}
         </Button>
         {hasFilters ? (
           <Link href={action} className={buttonVariants({ variant: "ghost" })}>
-            Clear
+            {tCommon("clear")}
           </Link>
         ) : null}
       </div>

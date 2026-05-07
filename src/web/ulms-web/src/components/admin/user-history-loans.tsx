@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import { LoanStatusBadge } from "@/components/common/status-pill";
 import { EmptyState } from "@/components/common/empty-state";
 import {
@@ -13,12 +15,13 @@ import { formatDateOnly } from "@/lib/format";
 
 type LoanResponse = components["schemas"]["LoanResponse"];
 
-export function UserHistoryLoans({ loans }: { loans: LoanResponse[] }) {
+export async function UserHistoryLoans({ loans }: { loans: LoanResponse[] }) {
+  const t = await getTranslations("admin.users.history");
   if (loans.length === 0) {
     return (
       <EmptyState
-        title="No loans yet"
-        description="This user has no past or current loans on record."
+        title={t("loansEmptyTitle")}
+        description={t("loansEmptyDescription")}
       />
     );
   }
@@ -27,12 +30,12 @@ export function UserHistoryLoans({ loans }: { loans: LoanResponse[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Book</TableHead>
-            <TableHead className="hidden sm:table-cell">Borrowed</TableHead>
-            <TableHead className="hidden md:table-cell">Due</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{t("loanBook")}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t("loanBorrowed")}</TableHead>
+            <TableHead className="hidden md:table-cell">{t("loanDue")}</TableHead>
+            <TableHead>{t("loanStatus")}</TableHead>
             <TableHead className="hidden md:table-cell text-right">
-              Renewals
+              {t("loanRenewals")}
             </TableHead>
           </TableRow>
         </TableHeader>

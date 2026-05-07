@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { createUserAction } from "@/app/(app)/admin/users/new/actions";
 import { updateUserAction } from "@/app/(app)/admin/users/[id]/edit/actions";
@@ -28,12 +29,6 @@ type UserFormProps =
 
 type Role = "STUDENT" | "LIBRARIAN" | "ADMIN";
 
-const ROLES: { value: Role; label: string }[] = [
-  { value: "STUDENT", label: "Student" },
-  { value: "LIBRARIAN", label: "Librarian" },
-  { value: "ADMIN", label: "Admin" },
-];
-
 function defaultsFrom(initial: UserResponse | undefined) {
   if (!initial) {
     return {
@@ -57,6 +52,10 @@ function defaultsFrom(initial: UserResponse | undefined) {
 
 export function UserForm(props: UserFormProps) {
   const router = useRouter();
+  const t = useTranslations("admin.users");
+  const tFields = useTranslations("admin.users.fields");
+  const tSubmit = useTranslations("admin.users.submit");
+  const tCommon = useTranslations("common");
   const action = props.mode === "create" ? createUserAction : updateUserAction;
   const [state, dispatch, pending] = useActionState<ActionState, FormData>(
     action,
@@ -78,6 +77,12 @@ export function UserForm(props: UserFormProps) {
 
   const isStudent = role === "STUDENT";
 
+  const ROLES: { value: Role; label: string }[] = [
+    { value: "STUDENT", label: t("roleStudent") },
+    { value: "LIBRARIAN", label: t("roleLibrarian") },
+    { value: "ADMIN", label: t("roleAdmin") },
+  ];
+
   return (
     <form action={dispatch} className="flex flex-col gap-4" noValidate>
       {props.mode === "edit" ? (
@@ -86,7 +91,7 @@ export function UserForm(props: UserFormProps) {
 
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="name">Full name</FieldLabel>
+          <FieldLabel htmlFor="name">{tFields("name")}</FieldLabel>
           <Input
             id="name"
             name="name"
@@ -99,7 +104,7 @@ export function UserForm(props: UserFormProps) {
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <FieldLabel htmlFor="email">{tFields("email")}</FieldLabel>
           <Input
             id="email"
             name="email"
@@ -113,7 +118,7 @@ export function UserForm(props: UserFormProps) {
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="role">Role</FieldLabel>
+          <FieldLabel htmlFor="role">{tFields("role")}</FieldLabel>
           <select
             id="role"
             name="role"
@@ -134,7 +139,7 @@ export function UserForm(props: UserFormProps) {
 
         {isStudent ? (
           <Field>
-            <FieldLabel htmlFor="universityId">University ID</FieldLabel>
+            <FieldLabel htmlFor="universityId">{tFields("universityId")}</FieldLabel>
             <Input
               id="universityId"
               name="universityId"
@@ -148,7 +153,7 @@ export function UserForm(props: UserFormProps) {
           </Field>
         ) : (
           <Field>
-            <FieldLabel htmlFor="staffId">Staff ID</FieldLabel>
+            <FieldLabel htmlFor="staffId">{tFields("staffId")}</FieldLabel>
             <Input
               id="staffId"
               name="staffId"
@@ -163,9 +168,7 @@ export function UserForm(props: UserFormProps) {
         )}
 
         <Field>
-          <FieldLabel htmlFor="phone">
-            Phone <span className="text-muted-foreground">(optional)</span>
-          </FieldLabel>
+          <FieldLabel htmlFor="phone">{tFields("phoneOptional")}</FieldLabel>
           <Input
             id="phone"
             name="phone"
@@ -179,11 +182,11 @@ export function UserForm(props: UserFormProps) {
 
         <Field>
           <FieldLabel htmlFor="password">
-            Password
+            {tFields("password")}
             {props.mode === "edit" ? (
               <span className="text-muted-foreground">
                 {" "}
-                (leave blank to keep current)
+                {tFields("passwordOptionalEdit")}
               </span>
             ) : null}
           </FieldLabel>
@@ -198,8 +201,8 @@ export function UserForm(props: UserFormProps) {
           />
           <FieldDescription>
             {props.mode === "create"
-              ? "At least 8 characters."
-              : "Type a new password to update; leave blank to keep the existing one."}
+              ? tFields("passwordHintCreate")
+              : tFields("passwordHintEdit")}
           </FieldDescription>
           {fieldErrors.password && (
             <FieldError>{fieldErrors.password}</FieldError>
@@ -218,14 +221,14 @@ export function UserForm(props: UserFormProps) {
           href="/admin/users"
           className={buttonVariants({ variant: "ghost" })}
         >
-          Cancel
+          {tCommon("cancel")}
         </Link>
         <Button type="submit" disabled={pending}>
           {pending
-            ? "Saving…"
+            ? tCommon("saving")
             : props.mode === "create"
-              ? "Create user"
-              : "Save changes"}
+              ? tSubmit("create")
+              : tSubmit("save")}
         </Button>
       </div>
     </form>

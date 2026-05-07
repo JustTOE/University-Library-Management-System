@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 
 import { deleteUserAction } from "@/app/(app)/admin/users/actions";
 import { initialActionState } from "@/app/(app)/admin/users/state";
@@ -26,6 +27,8 @@ export function DeleteUserButton({
   userId: number;
   name: string;
 }) {
+  const t = useTranslations("admin.users");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [state, dispatch, pending] = useActionState(
     deleteUserAction,
@@ -44,29 +47,28 @@ export function DeleteUserButton({
             disabled={pending}
             data-testid={`delete-user-${userId}`}
           >
-            Delete
+            {tCommon("delete")}
           </Button>
         }
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {name}?</AlertDialogTitle>
+          <AlertDialogTitle>{t("deleteConfirmTitle", { name })}</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently deletes the user record and cannot be undone. Users
-            with loans or fines on record cannot be deleted.
+            {t("deleteConfirmDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <form action={dispatch}>
           <input type="hidden" name="userId" value={userId} />
           <input type="hidden" name="name" value={name} />
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep user</AlertDialogCancel>
+            <AlertDialogCancel>{t("keepUser")}</AlertDialogCancel>
             <AlertDialogAction
               type="submit"
               variant="destructive"
               disabled={pending}
             >
-              Delete user
+              {t("deleteUser")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </form>

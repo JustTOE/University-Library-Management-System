@@ -1,16 +1,18 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { buttonVariants } from "@/components/ui/button";
 
-export default function EditUserNotFound() {
+export default async function EditUserNotFound() {
+  const t = await getTranslations("admin.users");
   return (
     <div className="flex flex-col items-center gap-4 py-12 text-center">
-      <h2 className="text-xl font-semibold">User not found</h2>
+      <h2 className="text-xl font-semibold">{t("userNotFoundTitle")}</h2>
       <p className="text-sm text-muted-foreground">
-        This user no longer exists or has been deleted.
+        {t("userNotFoundDescription")}
       </p>
       <Link href="/admin/users" className={buttonVariants()}>
-        Back to users
+        {t("backToUsers")}
       </Link>
     </div>
   );

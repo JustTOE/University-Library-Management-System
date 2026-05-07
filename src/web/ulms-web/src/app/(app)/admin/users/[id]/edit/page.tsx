@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { UserForm } from "@/components/admin/user-form";
 import { buttonVariants } from "@/components/ui/button";
@@ -32,6 +33,7 @@ export default async function EditUserPage({
 
   const session = await readSession();
   const user = await loadUser(userId, session?.token);
+  const t = await getTranslations("admin.users");
 
   return (
     <div className="flex flex-col gap-4">
@@ -39,11 +41,11 @@ export default async function EditUserPage({
         href="/admin/users"
         className={buttonVariants({ variant: "ghost", size: "sm" })}
       >
-        ← Back to users
+        {t("backToUsers")}
       </Link>
       <Card>
         <CardHeader>
-          <CardTitle>Edit user</CardTitle>
+          <CardTitle>{t("editTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <UserForm mode="edit" userId={userId} initial={user} />
