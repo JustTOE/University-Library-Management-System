@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -90,6 +91,7 @@ export async function UserTable({ users }: { users: UserResponse[] }) {
   return (
     <div className="rounded-lg border border-border bg-card">
       <Table>
+        <TableCaption className="sr-only">{t("title")}</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>{t("table.name")}</TableHead>

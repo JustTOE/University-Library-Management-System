@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "ULMS",
+    "skipToMain": "Skip to main content",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",

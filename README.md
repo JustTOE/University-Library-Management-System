@@ -58,6 +58,8 @@ Phase 5 ships the student-facing surface: catalog browse + search (UC4), book de
 
 Phase 6 ships the librarian surface: `/librarian/catalog` (UC11 list / create / edit / delete with friendly 409 mapping) and `/librarian/returns` (UC8 lookup by loan id, confirm return). The navbar gains a "Librarian" dropdown for LIBRARIAN / ADMIN users.
 
+Phase 7 ships the admin surface (UC12) plus EN/RO i18n and an a11y pass: `/admin/users` (paginated list with role filter), `/admin/users/new`, `/admin/users/[id]/edit`, and `/admin/users/[id]` with Profile / Loans / Fines tabs; activate / deactivate via AlertDialog. The navbar grows an "Admin" dropdown (ADMIN only) plus a small EN / RO locale switcher (cookie-persisted via next-intl). The skip-to-main link, table captions, and `aria-describedby` wiring round out the accessibility audit; axe-core jsdom assertions ship as Vitest specs.
+
 Useful scripts (run from `src/web/ulms-web/`):
 
 | Script | What it does |
@@ -67,7 +69,7 @@ Useful scripts (run from `src/web/ulms-web/`):
 | `npm run lint` | ESLint |
 | `npm run types:api` | Regenerate `src/lib/api/types.ts` from `http://localhost:8080/v3/api-docs`. Run after backend DTO/contract changes. |
 | `npm test` | Vitest unit tests (auth + every Phase 5 API helper + `format.ts`) |
-| `npm run test:e2e` | Playwright smoke tests (`e2e/auth-flow.spec.ts` + `e2e/student-flow.spec.ts` + `e2e/librarian-flow.spec.ts`). Requires the Java backend on `:8080`; cleanly skips if it's down. The student spec registers a fresh STUDENT per run; the librarian spec uses the seeded admin (no public librarian-registration endpoint exists, and ADMIN satisfies the same role guard). |
+| `npm run test:e2e` | Playwright smoke tests (`e2e/auth-flow.spec.ts` + `e2e/student-flow.spec.ts` + `e2e/librarian-flow.spec.ts` + `e2e/admin-flow.spec.ts`). Requires the Java backend on `:8080`; cleanly skips if it's down. The student spec registers a fresh STUDENT per run; the librarian and admin specs use the seeded admin (no public librarian-registration endpoint exists, and ADMIN satisfies the same role guard). |
 | `npm run verify` | `lint && build && test` (no e2e — backend-free) |
 
 `.env.example` documents the only configurable knob (`NEXT_PUBLIC_API_URL=http://localhost:8080`).

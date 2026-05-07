@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -28,6 +29,7 @@ export async function UserHistoryLoans({ loans }: { loans: LoanResponse[] }) {
   return (
     <div className="rounded-lg border border-border bg-card">
       <Table>
+        <TableCaption className="sr-only">{t("loanBook")}</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>{t("loanBook")}</TableHead>

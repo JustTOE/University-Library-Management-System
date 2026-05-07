@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -34,6 +35,7 @@ export function CatalogTable({ books }: { books: BookResponse[] }) {
   return (
     <div className="rounded-lg border border-border bg-card">
       <Table>
+        <TableCaption className="sr-only">Books in the catalog</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Title</TableHead>

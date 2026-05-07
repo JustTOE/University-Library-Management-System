@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -28,6 +29,7 @@ export async function UserHistoryFines({ fines }: { fines: FineResponse[] }) {
   return (
     <div className="rounded-lg border border-border bg-card">
       <Table>
+        <TableCaption className="sr-only">{t("fineId")}</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>{t("fineId")}</TableHead>

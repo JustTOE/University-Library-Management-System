@@ -116,8 +116,9 @@ export function BookForm(props: BookFormProps) {
             maxLength={20}
             defaultValue={defaults.isbn ?? ""}
             aria-invalid={Boolean(fieldErrors.isbn) || undefined}
+            aria-describedby="isbn-hint"
           />
-          <FieldDescription>Up to 20 characters; must be unique.</FieldDescription>
+          <FieldDescription id="isbn-hint">Up to 20 characters; must be unique.</FieldDescription>
           {fieldErrors.isbn && <FieldError>{fieldErrors.isbn}</FieldError>}
         </Field>
 

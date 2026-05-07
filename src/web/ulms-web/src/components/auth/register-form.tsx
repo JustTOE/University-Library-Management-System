@@ -91,8 +91,9 @@ export function RegisterForm() {
             minLength={8}
             required
             aria-invalid={Boolean(fieldErrors.password) || undefined}
+            aria-describedby="register-password-hint"
           />
-          <FieldDescription>At least 8 characters.</FieldDescription>
+          <FieldDescription id="register-password-hint">At least 8 characters.</FieldDescription>
           {fieldErrors.password && (
             <FieldError>{fieldErrors.password}</FieldError>
           )}

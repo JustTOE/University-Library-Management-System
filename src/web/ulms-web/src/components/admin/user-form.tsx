@@ -198,8 +198,9 @@ export function UserForm(props: UserFormProps) {
             minLength={8}
             required={props.mode === "create"}
             aria-invalid={Boolean(fieldErrors.password) || undefined}
+            aria-describedby="password-hint"
           />
-          <FieldDescription>
+          <FieldDescription id="password-hint">
             {props.mode === "create"
               ? tFields("passwordHintCreate")
               : tFields("passwordHintEdit")}

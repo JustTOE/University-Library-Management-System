@@ -71,10 +71,13 @@ src/
 │     │  ├ reservations/      # UC6 cancel reservation
 │     │  ├ fines/             # UC10 pay-fine via Dialog (402 inline alert)
 │     │  └ notifications/     # UC3 acknowledge
-│     └ librarian/            # LIBRARIAN/ADMIN sub-surface
-│        ├ layout.tsx         # requireRole(LIBRARIAN, ADMIN) + sub-nav
-│        ├ catalog/           # UC11 list + create + edit + delete
-│        └ returns/           # UC8 process return by loan id
+│     ├ librarian/            # LIBRARIAN/ADMIN sub-surface
+│     │  ├ layout.tsx         # requireRole(LIBRARIAN, ADMIN) + sub-nav
+│     │  ├ catalog/           # UC11 list + create + edit + delete
+│     │  └ returns/           # UC8 process return by loan id
+│     └ admin/                # ADMIN-only sub-surface
+│        ├ layout.tsx         # requireRole(ADMIN) + sub-nav
+│        └ users/             # UC12 list + create + edit + detail (Profile/Loans/Fines tabs)
 ├ components/
 │  ├ ui/                      # shadcn primitives (12 added in 5b)
 │  ├ auth/                    # login/register/logout client components
@@ -82,12 +85,15 @@ src/
 │  ├ common/                  # status-pill, empty-state, error-alert
 │  ├ my/                      # renew, cancel-reservation, pay-fine, acknowledge
 │  ├ librarian/               # librarian-catalog-table, book-form, delete-book, confirm-return
-│  └ layout/                  # navbar (bell + My library + Librarian dropdowns)
+│  ├ admin/                   # user-table, user-form, user-search-form, user-history-loans/fines, active-toggle, delete-user
+│  └ layout/                  # navbar (bell + My library + Librarian + Admin dropdowns + locale switcher), skip-link
 ├ lib/
 │  ├ api/                     # generated types + typed fetch helpers per resource
 │  ├ auth/                    # session/actions/guards/state
 │  ├ hooks/                   # use-toast-effect (shared transition→toast plumbing)
 │  └ format.ts                # date-fns + Intl.NumberFormat helpers
+├ i18n/                       # next-intl request config, locale type + cookie helpers, setLocaleAction
+├ messages/                   # en.json + ro.json + parity test
 ├ proxy.ts                    # Next 16 "middleware" rename; sets x-current-path
 └ ...
 ```
@@ -110,3 +116,18 @@ Navbar (STUDENT only): Catalog · Bell with unread badge · "My library" dropdow
 - **/librarian/returns** — UC8 process a return: search by loan id, confirm via Server Action, the system handles fines (nightly job) and reservation fulfilment (notification) asynchronously.
 
 Navbar (LIBRARIAN / ADMIN): Catalog · "Librarian" dropdown (Catalog / Returns) · avatar. The seeded admin satisfies the `or hasRole('ADMIN')` half of every Phase 6 endpoint guard, so it can drive the full surface end-to-end without a fresh librarian registration.
+
+## Phase 7 surface
+
+- **/admin/users** — UC12 list every user (client-side paginated over the full `GET /api/users` response, search by name/email/identifier + role filter); New user button opens `/admin/users/new`. Each row offers View / Edit / Activate-or-Deactivate (AlertDialog confirm) / Delete (AlertDialog confirm).
+- **/admin/users/new** — UC12 create form; 409 unique-constraint conflicts (email / universityId / staffId) are rewritten into a friendly inline `fieldErrors.email`.
+- **/admin/users/[id]** — Profile + Loans + Fines tabs. The history tab fetches `/api/users/{id}/history` once and renders both lists.
+- **/admin/users/[id]/edit** — UC12 update form; password field accepts blank to keep the existing hashed password.
+
+Backend exposes `isActive` on `UserResponse` (record extra positional field) so the admin UI can render Active / Inactive badges and the right toggle copy.
+
+Navbar (ADMIN): an additional "Admin" dropdown (Users) appears alongside the Librarian dropdown. EN / RO locale switcher (cookie `ulms_locale`) sits between the dropdowns and the avatar.
+
+i18n via `next-intl` 4.11 in i18n-without-routing mode. Messages live in `src/messages/{en,ro}.json`. The catalog covers the full navbar + the admin user-management surface; the student / librarian / catalog / auth pages remain in English this phase and will pick up `t()` calls in a follow-up sweep without behaviour changes. A Vitest spec asserts en/ro key parity (`src/messages/__tests__/parity.test.ts`).
+
+Accessibility: skip-to-main link in the root layout, `<main id="main">` landmarks in (auth)/(app) layouts, table captions on every catalog/user/history table, `aria-describedby` on inputs that have a `<FieldDescription>`, focus-visible rings on navbar links. Component-level axe-core jsdom assertions ship as Vitest specs in `src/__tests__/a11y/`.

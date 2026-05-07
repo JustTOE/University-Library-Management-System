@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "ULMS",
+    "skipToMain": "Sari la conținutul principal",
     "save": "Salvează",
     "cancel": "Anulează",
     "delete": "Șterge",

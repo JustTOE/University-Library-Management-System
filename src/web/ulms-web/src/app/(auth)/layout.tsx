@@ -12,7 +12,10 @@ export default async function AuthLayout({
   if (session) redirect("/catalog");
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted px-4 py-8">
+    <main
+      id="main"
+      className="flex min-h-screen items-center justify-center bg-muted px-4 py-8"
+    >
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-xl">ULMS</CardTitle>
