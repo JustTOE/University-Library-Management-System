@@ -15,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { LogoutFormButton } from "@/components/auth/logout-button";
 import type { UserResponse } from "@/lib/api/auth";
 import { getUnreadCount } from "@/lib/api/notifications";
@@ -159,8 +158,6 @@ export async function Navbar({
             </DropdownMenuContent>
           </DropdownMenu>
         ) : null}
-
-        <LocaleSwitcher />
 
         <DropdownMenu>
           <DropdownMenuTrigger

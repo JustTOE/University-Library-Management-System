@@ -58,7 +58,7 @@ Phase 5 ships the student-facing surface: catalog browse + search (UC4), book de
 
 Phase 6 ships the librarian surface: `/librarian/catalog` (UC11 list / create / edit / delete with friendly 409 mapping) and `/librarian/returns` (UC8 lookup by loan id, confirm return). The navbar gains a "Librarian" dropdown for LIBRARIAN / ADMIN users.
 
-Phase 7 ships the admin surface (UC12) plus EN/RO i18n and an a11y pass: `/admin/users` (paginated list with role filter), `/admin/users/new`, `/admin/users/[id]/edit`, and `/admin/users/[id]` with Profile / Loans / Fines tabs; activate / deactivate via AlertDialog. The navbar grows an "Admin" dropdown (ADMIN only) plus a small EN / RO locale switcher (cookie-persisted via next-intl). The skip-to-main link, table captions, and `aria-describedby` wiring round out the accessibility audit; axe-core jsdom assertions ship as Vitest specs.
+Phase 7 ships the admin surface (UC12) plus an a11y pass: `/admin/users` (paginated list with role filter), `/admin/users/new`, `/admin/users/[id]/edit`, and `/admin/users/[id]` with Profile / Loans / Fines tabs; activate / deactivate via AlertDialog. The navbar grows an "Admin" dropdown (ADMIN only). The skip-to-main link, table captions, and `aria-describedby` wiring round out the accessibility audit; axe-core jsdom assertions ship as Vitest specs. (next-intl is wired and `t()` calls thread through the navbar + admin surface, but the project is English-only — single catalog at `src/messages/en.json`.)
 
 Useful scripts (run from `src/web/ulms-web/`):
 

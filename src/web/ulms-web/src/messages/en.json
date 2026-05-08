@@ -17,13 +17,6 @@
     "yes": "Yes",
     "no": "No"
   },
-  "locale": {
-    "switchLabel": "Language",
-    "english": "English",
-    "romanian": "Romanian",
-    "switchToEnglish": "Switch to English",
-    "switchToRomanian": "Switch to Romanian"
-  },
   "navbar": {
     "catalog": "Catalog",
     "notificationsLabel": "Notifications",

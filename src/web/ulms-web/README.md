@@ -86,14 +86,14 @@ src/
 │  ├ my/                      # renew, cancel-reservation, pay-fine, acknowledge
 │  ├ librarian/               # librarian-catalog-table, book-form, delete-book, confirm-return
 │  ├ admin/                   # user-table, user-form, user-search-form, user-history-loans/fines, active-toggle, delete-user
-│  └ layout/                  # navbar (bell + My library + Librarian + Admin dropdowns + locale switcher), skip-link
+│  └ layout/                  # navbar (bell + My library + Librarian + Admin dropdowns), skip-link
 ├ lib/
 │  ├ api/                     # generated types + typed fetch helpers per resource
 │  ├ auth/                    # session/actions/guards/state
 │  ├ hooks/                   # use-toast-effect (shared transition→toast plumbing)
 │  └ format.ts                # date-fns + Intl.NumberFormat helpers
-├ i18n/                       # next-intl request config, locale type + cookie helpers, setLocaleAction
-├ messages/                   # en.json + ro.json + parity test
+├ i18n/                       # next-intl request config + locale type (English-only today)
+├ messages/                   # en.json (single catalog)
 ├ proxy.ts                    # Next 16 "middleware" rename; sets x-current-path
 └ ...
 ```
@@ -126,8 +126,8 @@ Navbar (LIBRARIAN / ADMIN): Catalog · "Librarian" dropdown (Catalog / Returns) 
 
 Backend exposes `isActive` on `UserResponse` (record extra positional field) so the admin UI can render Active / Inactive badges and the right toggle copy.
 
-Navbar (ADMIN): an additional "Admin" dropdown (Users) appears alongside the Librarian dropdown. EN / RO locale switcher (cookie `ulms_locale`) sits between the dropdowns and the avatar.
+Navbar (ADMIN): an additional "Admin" dropdown (Users) appears alongside the Librarian dropdown.
 
-i18n via `next-intl` 4.11 in i18n-without-routing mode. Messages live in `src/messages/{en,ro}.json`. The catalog covers the full navbar + the admin user-management surface; the student / librarian / catalog / auth pages remain in English this phase and will pick up `t()` calls in a follow-up sweep without behaviour changes. A Vitest spec asserts en/ro key parity (`src/messages/__tests__/parity.test.ts`).
+i18n plumbing via `next-intl` 4.11 in i18n-without-routing mode is wired but the project ships English-only — `src/messages/en.json` is the single catalog and `LOCALES` in `src/i18n/config.ts` lists only `"en"`. The `t()` call sites across the navbar + admin surface keep the architecture in place if a second locale is ever added; today there is no user-facing locale switch.
 
 Accessibility: skip-to-main link in the root layout, `<main id="main">` landmarks in (auth)/(app) layouts, table captions on every catalog/user/history table, `aria-describedby` on inputs that have a `<FieldDescription>`, focus-visible rings on navbar links. Component-level axe-core jsdom assertions ship as Vitest specs in `src/__tests__/a11y/`.
