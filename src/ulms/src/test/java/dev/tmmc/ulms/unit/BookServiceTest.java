@@ -6,6 +6,7 @@ import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
 import dev.tmmc.ulms.objects.exceptions.BookInUseException;
 import dev.tmmc.ulms.objects.repositories.BookRepository;
 import dev.tmmc.ulms.objects.repositories.LoanRepository;
+import dev.tmmc.ulms.objects.services.AuditService;
 import dev.tmmc.ulms.objects.services.BookService;
 import dev.tmmc.ulms.support.TestFixtures;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,9 @@ public class BookServiceTest {
 
     @Mock
     LoanRepository loanRepository;
+
+    @Mock
+    AuditService auditService;
 
     @InjectMocks
     BookService bookService;

@@ -4,6 +4,7 @@ import dev.tmmc.ulms.objects.dto.response.PaymentResponse;
 import dev.tmmc.ulms.objects.entities.Fine;
 import dev.tmmc.ulms.objects.entities.Payment;
 import dev.tmmc.ulms.objects.entities.User;
+import dev.tmmc.ulms.objects.entities.enums.AuditAction;
 import dev.tmmc.ulms.objects.entities.enums.FineStatus;
 import dev.tmmc.ulms.objects.entities.enums.PaymentMethod;
 import dev.tmmc.ulms.objects.entities.enums.PaymentStatus;
@@ -31,13 +32,16 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final FineRepository fineRepository;
     private final PaymentGatewayClient gateway;
+    private final AuditService auditService;
 
     public PaymentService(PaymentRepository paymentRepository,
                           FineRepository fineRepository,
-                          PaymentGatewayClient gateway) {
+                          PaymentGatewayClient gateway,
+                          AuditService auditService) {
         this.paymentRepository = paymentRepository;
         this.fineRepository = fineRepository;
         this.gateway = gateway;
+        this.auditService = auditService;
     }
 
     @Transactional(noRollbackFor = PaymentDeclinedException.class)
@@ -63,12 +67,17 @@ public class PaymentService {
             payment.setProviderRef(result.providerRef());
             fine.setStatus(FineStatus.PAID);
             fineRepository.save(fine);
-            return paymentRepository.save(payment);
+            Payment saved = paymentRepository.save(payment);
+            auditService.record(AuditAction.PAY_FINE_SUCCESS,
+                    "fineId=" + fineId + " amount=" + fine.getAmount() + " method=" + method);
+            return saved;
         }
 
         payment.setStatus(PaymentStatus.FAILED);
         payment.setDeclineReason(result.declineReason());
         paymentRepository.save(payment);
+        auditService.record(AuditAction.PAY_FINE_FAILED,
+                "fineId=" + fineId + " reason=" + result.declineReason());
         throw new PaymentDeclinedException(result.declineReason());
     }
 

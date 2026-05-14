@@ -12,6 +12,7 @@ import dev.tmmc.ulms.objects.exceptions.PaymentDeclinedException;
 import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.repositories.FineRepository;
 import dev.tmmc.ulms.objects.repositories.PaymentRepository;
+import dev.tmmc.ulms.objects.services.AuditService;
 import dev.tmmc.ulms.objects.services.PaymentService;
 import dev.tmmc.ulms.objects.services.payment.PaymentGatewayClient;
 import dev.tmmc.ulms.objects.services.payment.PaymentGatewayClient.ChargeResult;
@@ -47,6 +48,9 @@ class PaymentServiceTest {
 
     @Mock
     private PaymentGatewayClient gateway;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private PaymentService paymentService;

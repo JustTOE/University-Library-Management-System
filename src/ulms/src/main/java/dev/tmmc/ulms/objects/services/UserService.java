@@ -1,6 +1,7 @@
 package dev.tmmc.ulms.objects.services;
 
 import dev.tmmc.ulms.objects.entities.User;
+import dev.tmmc.ulms.objects.entities.enums.AuditAction;
 import dev.tmmc.ulms.objects.repositories.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,10 +15,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuditService auditService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
@@ -47,18 +50,31 @@ public class UserService {
 
     @Transactional
     public User save(User user, String rawPassword) {
+        boolean isNew = user.getId() == null;
         user.setPasswordHash(passwordEncoder.encode(rawPassword));
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        auditService.record(
+                isNew ? AuditAction.USER_CREATE : AuditAction.USER_UPDATE,
+                "userId=" + saved.getId() + " email=" + saved.getEmail()
+        );
+        return saved;
     }
 
     @Transactional
     public User save(User user) {
-        return userRepository.save(user);
+        boolean isNew = user.getId() == null;
+        User saved = userRepository.save(user);
+        auditService.record(
+                isNew ? AuditAction.USER_CREATE : AuditAction.USER_UPDATE,
+                "userId=" + saved.getId() + " email=" + saved.getEmail()
+        );
+        return saved;
     }
 
     @Transactional
     public void deleteById(Integer id) {
         userRepository.deleteById(id);
+        auditService.record(AuditAction.USER_UPDATE, "delete userId=" + id);
     }
 
     @Transactional
@@ -66,7 +82,9 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException("User not found: " + id));
         user.setActive(true);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        auditService.record(AuditAction.USER_ACTIVATE, "userId=" + id);
+        return saved;
     }
 
     @Transactional
@@ -74,6 +92,8 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException("User not found: " + id));
         user.setActive(false);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        auditService.record(AuditAction.USER_DEACTIVATE, "userId=" + id);
+        return saved;
     }
 }

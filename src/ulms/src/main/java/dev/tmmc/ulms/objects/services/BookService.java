@@ -1,6 +1,7 @@
 package dev.tmmc.ulms.objects.services;
 
 import dev.tmmc.ulms.objects.entities.Book;
+import dev.tmmc.ulms.objects.entities.enums.AuditAction;
 import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
 import dev.tmmc.ulms.objects.exceptions.BookInUseException;
 import dev.tmmc.ulms.objects.repositories.BookRepository;
@@ -21,10 +22,12 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
+    private final AuditService auditService;
 
-    public BookService(BookRepository bookRepository, LoanRepository loanRepository) {
+    public BookService(BookRepository bookRepository, LoanRepository loanRepository, AuditService auditService) {
         this.bookRepository = bookRepository;
         this.loanRepository = loanRepository;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
@@ -64,6 +67,7 @@ public class BookService {
                     "Book has active loans and cannot be deleted: " + id);
         }
         bookRepository.deleteById(id);
+        auditService.record(AuditAction.BOOK_DELETE, "bookId=" + id);
     }
 
     @Transactional
