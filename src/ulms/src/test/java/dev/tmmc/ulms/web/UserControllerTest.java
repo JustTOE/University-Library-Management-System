@@ -11,6 +11,9 @@ import dev.tmmc.ulms.objects.entities.enums.LoanStatus;
 import dev.tmmc.ulms.objects.entities.enums.UserRole;
 import dev.tmmc.ulms.objects.services.FineService;
 import dev.tmmc.ulms.objects.services.LoanService;
+import dev.tmmc.ulms.objects.services.NotificationService;
+import dev.tmmc.ulms.objects.services.PaymentService;
+import dev.tmmc.ulms.objects.services.ReservationService;
 import dev.tmmc.ulms.objects.services.UserService;
 import dev.tmmc.ulms.security.JwtService;
 import dev.tmmc.ulms.support.TestFixtures;
@@ -50,6 +53,9 @@ class UserControllerTest {
     @MockitoBean private UserService userService;
     @MockitoBean private LoanService loanService;
     @MockitoBean private FineService fineService;
+    @MockitoBean private ReservationService reservationService;
+    @MockitoBean private PaymentService paymentService;
+    @MockitoBean private NotificationService notificationService;
     @MockitoBean private JwtService jwtService;
 
     @BeforeEach
@@ -115,11 +121,48 @@ class UserControllerTest {
     }
 
     @Test
-    void deleteReturns204() throws Exception {
-        when(userService.findById(3)).thenReturn(Optional.of(existing(3)));
+    void deleteAnonymisesUserAndReturnsCleared() throws Exception {
+        User anonymised = existing(3);
+        anonymised.setName("anonymised-user-3");
+        anonymised.setEmail("anonymised-user-3@deleted.invalid");
+        anonymised.setActive(false);
+        when(userService.anonymise(3)).thenReturn(anonymised);
 
         mockMvc.perform(delete("/api/users/3"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(3))
+                .andExpect(jsonPath("$.name").value("anonymised-user-3"))
+                .andExpect(jsonPath("$.email").value("anonymised-user-3@deleted.invalid"))
+                .andExpect(jsonPath("$.isActive").value(false));
+    }
+
+    @Test
+    void exportReturnsFullDump() throws Exception {
+        User user = existing(11);
+        when(userService.findById(11)).thenReturn(Optional.of(user));
+        when(loanService.findByUserWithDetailsAsResponse(user)).thenReturn(List.of());
+        when(fineService.findByLoanUserAsResponse(user)).thenReturn(List.of());
+        when(reservationService.findByUserAsResponse(user)).thenReturn(List.of());
+        when(paymentService.findByUserAsResponse(user)).thenReturn(List.of());
+        when(notificationService.findByUserAsResponse(user)).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/users/11/export"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.id").value(11))
+                .andExpect(jsonPath("$.loans").isArray())
+                .andExpect(jsonPath("$.fines").isArray())
+                .andExpect(jsonPath("$.reservations").isArray())
+                .andExpect(jsonPath("$.payments").isArray())
+                .andExpect(jsonPath("$.notifications").isArray())
+                .andExpect(jsonPath("$.exportedAt").exists());
+    }
+
+    @Test
+    void exportReturns404WhenUserMissing() throws Exception {
+        when(userService.findById(404)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/users/404/export"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

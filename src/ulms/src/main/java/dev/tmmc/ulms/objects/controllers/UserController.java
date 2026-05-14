@@ -1,6 +1,7 @@
 package dev.tmmc.ulms.objects.controllers;
 
 import dev.tmmc.ulms.objects.dto.request.CreateUserRequest;
+import dev.tmmc.ulms.objects.dto.response.UserExportResponse;
 import dev.tmmc.ulms.objects.dto.response.UserHistoryResponse;
 import dev.tmmc.ulms.objects.dto.response.UserResponse;
 import dev.tmmc.ulms.objects.entities.User;
@@ -8,11 +9,13 @@ import dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException;
 import dev.tmmc.ulms.objects.mapper.UserMapper;
 import dev.tmmc.ulms.objects.services.FineService;
 import dev.tmmc.ulms.objects.services.LoanService;
+import dev.tmmc.ulms.objects.services.NotificationService;
+import dev.tmmc.ulms.objects.services.PaymentService;
+import dev.tmmc.ulms.objects.services.ReservationService;
 import dev.tmmc.ulms.objects.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,13 +29,22 @@ public class UserController {
     private final UserService userService;
     private final LoanService loanService;
     private final FineService fineService;
+    private final ReservationService reservationService;
+    private final PaymentService paymentService;
+    private final NotificationService notificationService;
 
     public UserController(UserService userService,
                           LoanService loanService,
-                          FineService fineService) {
+                          FineService fineService,
+                          ReservationService reservationService,
+                          PaymentService paymentService,
+                          NotificationService notificationService) {
         this.userService = userService;
         this.loanService = loanService;
         this.fineService = fineService;
+        this.reservationService = reservationService;
+        this.paymentService = paymentService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping
@@ -101,12 +113,28 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Delete a user (admin only)")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        userService.findById(id)
+    @Operation(summary = "GDPR-anonymise a user (admin only). PII is cleared; loans/fines/payments are preserved for accounting.")
+    public UserResponse anonymise(@PathVariable Integer id) {
+        return UserMapper.toResponse(userService.anonymise(id));
+    }
+
+    @GetMapping("/{id}/export")
+    @PreAuthorize("hasRole('ADMIN') or principal.userId == #id")
+    @Operation(summary = "GDPR export: dump the user plus all their loans, fines, reservations, payments and notifications (self or admin).")
+    public UserExportResponse export(@PathVariable Integer id) {
+        User user = userService.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
-        userService.deleteById(id);
-        return ResponseEntity.noContent().build();
+        UserExportResponse response = new UserExportResponse(
+                java.time.OffsetDateTime.now(),
+                UserMapper.toResponse(user),
+                loanService.findByUserWithDetailsAsResponse(user),
+                fineService.findByLoanUserAsResponse(user),
+                reservationService.findByUserAsResponse(user),
+                paymentService.findByUserAsResponse(user),
+                notificationService.findByUserAsResponse(user)
+        );
+        userService.recordExport(id, user.getEmail());
+        return response;
     }
 
     @PutMapping("/{id}/activate")

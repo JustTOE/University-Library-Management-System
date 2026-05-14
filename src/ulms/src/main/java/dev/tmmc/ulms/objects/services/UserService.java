@@ -96,4 +96,32 @@ public class UserService {
         auditService.record(AuditAction.USER_DEACTIVATE, "userId=" + id);
         return saved;
     }
+
+    /**
+     * GDPR right-to-erasure: clear PII while preserving the row + foreign-key linkage
+     * to historical loans/fines/payments. The original email/name/phone is replaced
+     * with deterministic anonymised placeholders.
+     */
+    @Transactional
+    public User anonymise(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException("User not found: " + id));
+        String originalEmail = user.getEmail();
+        String placeholder = "anonymised-user-" + id;
+        user.setName(placeholder);
+        user.setEmail(placeholder + "@deleted.invalid");
+        user.setPhone(null);
+        user.setUniversityId(null);
+        user.setStaffId(null);
+        user.setActive(false);
+        user.setPasswordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
+        User saved = userRepository.save(user);
+        auditService.record(AuditAction.ANONYMISE_USER,
+                "targetUserId=" + id + " originalEmail=" + originalEmail);
+        return saved;
+    }
+
+    public void recordExport(Integer id, String email) {
+        auditService.record(AuditAction.EXPORT_USER, "userId=" + id + " email=" + email);
+    }
 }
