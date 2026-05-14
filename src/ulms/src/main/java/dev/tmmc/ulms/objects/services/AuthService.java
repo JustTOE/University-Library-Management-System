@@ -5,6 +5,7 @@ import dev.tmmc.ulms.objects.dto.request.RegisterRequest;
 import dev.tmmc.ulms.objects.dto.response.AuthResponse;
 import dev.tmmc.ulms.objects.dto.response.UserResponse;
 import dev.tmmc.ulms.objects.entities.User;
+import dev.tmmc.ulms.objects.entities.enums.AuditAction;
 import dev.tmmc.ulms.objects.entities.enums.UserRole;
 import dev.tmmc.ulms.objects.exceptions.AccountInactiveException;
 import dev.tmmc.ulms.objects.exceptions.AccountLockedException;
@@ -33,6 +34,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuditService auditService;
     private final long jwtLifetimeMinutes;
 
     public AuthService(
@@ -41,6 +43,7 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
             ApplicationEventPublisher eventPublisher,
+            AuditService auditService,
             @Value("${ulms.security.jwt.lifetime-minutes:60}") long jwtLifetimeMinutes
     ) {
         this.userRepository = userRepository;
@@ -48,20 +51,27 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.eventPublisher = eventPublisher;
+        this.auditService = auditService;
         this.jwtLifetimeMinutes = jwtLifetimeMinutes;
     }
 
     @Transactional(noRollbackFor = {InvalidCredentialsException.class, AccountLockedException.class, AccountInactiveException.class})
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+        User user = userRepository.findByEmail(request.email()).orElse(null);
+        if (user == null) {
+            auditService.record(AuditAction.LOGIN_FAILURE, null, request.email(), "unknown email");
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
 
         if (!user.isActive()) {
+            auditService.record(AuditAction.LOGIN_FAILURE, user.getId(), user.getEmail(), "account inactive");
             throw new AccountInactiveException("Account is deactivated");
         }
 
         OffsetDateTime now = OffsetDateTime.now();
         if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(now)) {
+            auditService.record(AuditAction.LOGIN_LOCKED, user.getId(), user.getEmail(),
+                    "locked until " + user.getLockedUntil());
             throw new AccountLockedException(
                     "Account locked due to too many failed login attempts",
                     user.getLockedUntil()
@@ -75,6 +85,8 @@ public class AuthService {
                 user.setFailedLoginAttempts(0);
                 user.setLockedUntil(lockedUntil);
                 userRepository.save(user);
+                auditService.record(AuditAction.LOGIN_LOCKED, user.getId(), user.getEmail(),
+                        "locked after " + MAX_FAILED_ATTEMPTS + " failed attempts");
                 throw new AccountLockedException(
                         "Account locked due to too many failed login attempts",
                         lockedUntil
@@ -82,6 +94,8 @@ public class AuthService {
             }
             user.setFailedLoginAttempts(attempts);
             userRepository.save(user);
+            auditService.record(AuditAction.LOGIN_FAILURE, user.getId(), user.getEmail(),
+                    "bad password (attempt " + attempts + " of " + MAX_FAILED_ATTEMPTS + ")");
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
@@ -91,6 +105,7 @@ public class AuthService {
 
         String token = jwtService.generateToken(user);
         OffsetDateTime expiresAt = now.plusMinutes(jwtLifetimeMinutes);
+        auditService.record(AuditAction.LOGIN_SUCCESS, user.getId(), user.getEmail(), null);
         return new AuthResponse(token, expiresAt, user.getRole(), user.getId(), user.getName());
     }
 
@@ -110,6 +125,7 @@ public class AuthService {
 
         User saved = userService.save(user, request.password());
         eventPublisher.publishEvent(new RegistrationCompletedEvent(saved));
+        auditService.record(AuditAction.REGISTER, saved.getId(), saved.getEmail(), "self-registration");
         return UserMapper.toResponse(saved);
     }
 }

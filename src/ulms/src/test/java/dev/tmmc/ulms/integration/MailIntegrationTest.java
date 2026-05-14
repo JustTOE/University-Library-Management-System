@@ -1,6 +1,7 @@
 package dev.tmmc.ulms.integration;
 
 import dev.tmmc.ulms.objects.entities.User;
+import dev.tmmc.ulms.objects.repositories.AuditLogRepository;
 import dev.tmmc.ulms.objects.repositories.FineRepository;
 import dev.tmmc.ulms.objects.repositories.LoanRepository;
 import dev.tmmc.ulms.objects.repositories.PaymentRepository;
@@ -38,12 +39,14 @@ class MailIntegrationTest {
     @Autowired private FineRepository fineRepository;
     @Autowired private PaymentRepository paymentRepository;
     @Autowired private ReservationRepository reservationRepository;
+    @Autowired private AuditLogRepository auditLogRepository;
 
     @MockitoBean
     private MailService mailService;
 
     @BeforeEach
     void cleanDatabase() {
+        auditLogRepository.deleteAllInBatch();
         paymentRepository.deleteAllInBatch();
         fineRepository.deleteAllInBatch();
         reservationRepository.deleteAllInBatch();

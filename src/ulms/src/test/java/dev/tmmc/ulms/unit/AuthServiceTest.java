@@ -5,12 +5,14 @@ import dev.tmmc.ulms.objects.dto.request.RegisterRequest;
 import dev.tmmc.ulms.objects.dto.response.AuthResponse;
 import dev.tmmc.ulms.objects.dto.response.UserResponse;
 import dev.tmmc.ulms.objects.entities.User;
+import dev.tmmc.ulms.objects.entities.enums.AuditAction;
 import dev.tmmc.ulms.objects.entities.enums.UserRole;
 import dev.tmmc.ulms.objects.exceptions.AccountInactiveException;
 import dev.tmmc.ulms.objects.exceptions.AccountLockedException;
 import dev.tmmc.ulms.objects.exceptions.EmailAlreadyExistsException;
 import dev.tmmc.ulms.objects.exceptions.InvalidCredentialsException;
 import dev.tmmc.ulms.objects.repositories.UserRepository;
+import dev.tmmc.ulms.objects.services.AuditService;
 import dev.tmmc.ulms.objects.services.AuthService;
 import dev.tmmc.ulms.objects.services.UserService;
 import dev.tmmc.ulms.objects.services.mail.RegistrationCompletedEvent;
@@ -33,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,9 +49,10 @@ class AuthServiceTest {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtService jwtService;
     @Mock private ApplicationEventPublisher eventPublisher;
+    @Mock private AuditService auditService;
 
     private AuthService authService() {
-        return new AuthService(userRepository, userService, passwordEncoder, jwtService, eventPublisher, 60L);
+        return new AuthService(userRepository, userService, passwordEncoder, jwtService, eventPublisher, auditService, 60L);
     }
 
     private User activeUser() {
@@ -79,6 +83,8 @@ class AuthServiceTest {
         verify(userRepository).save(savedUser.capture());
         assertEquals(0, savedUser.getValue().getFailedLoginAttempts());
         assertNull(savedUser.getValue().getLockedUntil());
+
+        verify(auditService).record(eq(AuditAction.LOGIN_SUCCESS), eq(1), eq(user.getEmail()), any());
     }
 
     @Test
@@ -94,6 +100,8 @@ class AuthServiceTest {
         verify(userRepository).save(savedUser.capture());
         assertEquals(1, savedUser.getValue().getFailedLoginAttempts());
         assertNull(savedUser.getValue().getLockedUntil());
+
+        verify(auditService).record(eq(AuditAction.LOGIN_FAILURE), eq(1), eq(user.getEmail()), any());
     }
 
     @Test
@@ -113,6 +121,8 @@ class AuthServiceTest {
         verify(userRepository).save(savedUser.capture());
         assertEquals(0, savedUser.getValue().getFailedLoginAttempts());
         assertNotNull(savedUser.getValue().getLockedUntil());
+
+        verify(auditService).record(eq(AuditAction.LOGIN_LOCKED), eq(1), eq(user.getEmail()), any());
     }
 
     @Test
@@ -172,6 +182,7 @@ class AuthServiceTest {
                 ArgumentCaptor.forClass(RegistrationCompletedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         assertEquals(42, eventCaptor.getValue().user().getId());
+        verify(auditService).record(eq(AuditAction.REGISTER), eq(42), eq(request.email()), any());
     }
 
     @Test
