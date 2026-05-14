@@ -1,5 +1,7 @@
 # ULMS — University Library Management System
 
+[![CI](https://github.com/JustTOE/University-Library-Management-System/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/JustTOE/University-Library-Management-System/actions/workflows/ci.yml)
+
 Software Development Methods coursework, UPB Bucharest. Spring Boot 4 backend (`src/ulms/`) plus a Next.js 16 + React 19 + shadcn/ui frontend (`src/web/ulms-web/`). Postgres + MailHog via docker-compose.
 
 ## Running locally
