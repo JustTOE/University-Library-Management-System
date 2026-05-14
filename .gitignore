@@ -18,3 +18,8 @@ src/ulms/resolve_log*.txt
 **/.claude/
 **/memory/
 .claude/
+
+# Local secrets
+.env.prod
+.env
+

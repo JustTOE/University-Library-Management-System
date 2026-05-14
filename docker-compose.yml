@@ -14,10 +14,11 @@ services:
       - postgres-tier
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U db_user -d ulms" ]
+      test: ["CMD-SHELL", "pg_isready -U db_user -d ulms"]
       interval: 30s
       timeout: 10s
       retries: 5
+
   mailhog:
     container_name: mailhog
     image: mailhog/mailhog:latest
@@ -27,6 +28,7 @@ services:
     networks:
       - postgres-tier
     restart: unless-stopped
+
   spring-boot-app:
     container_name: spring_boot_app
     build: src/ulms
@@ -39,12 +41,16 @@ services:
       - SPRING_MAIL_HOST=mailhog
       - SPRING_MAIL_PORT=1025
       - ULMS_MAIL_ENABLED=true
+      - JWT_SECRET=${JWT_SECRET:-dev-only-jwt-secret-for-local-32-byte-min}
+      - ULMS_FRONTEND_ORIGIN=${ULMS_FRONTEND_ORIGIN:-http://localhost:3000}
     networks:
       - postgres-tier
     restart: unless-stopped
     depends_on:
-      - postgres_database
-      - mailhog
+      postgres_database:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
 
 volumes:
   postgres-data: {}

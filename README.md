@@ -84,3 +84,7 @@ cd src/ulms
 H2 with PostgreSQL mode is the test datasource; the seed admin migration has an H2-flavoured mirror under `src/test/resources/db/migration-h2`.
 
 For the frontend, see the *Frontend* section above (`npm test` for unit, `npm run test:e2e` for the Playwright smoke flow).
+
+## Production deployment
+
+`docker-compose.prod.yml` brings up the full stack (Postgres + backend + Next.js + Caddy with auto-HTTPS + nightly pg_dump sidecar) on a single VPS. The walk-through — env vars, smoke checks, backups, troubleshooting — is in [`docs/deploy.md`](./docs/deploy.md). Production secrets go in `.env.prod` (template at [`.env.prod.example`](./.env.prod.example); the real file is gitignored).

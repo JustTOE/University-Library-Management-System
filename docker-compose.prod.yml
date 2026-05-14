@@ -1,0 +1,121 @@
+services:
+  postgres:
+    container_name: ulms_postgres
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-ulms}
+    volumes:
+      - ulms-postgres-data:/var/lib/postgresql/data
+      - ulms-postgres-backups:/backups
+    networks:
+      - ulms
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    container_name: ulms_backend
+    build:
+      context: src/ulms
+    image: ulms-backend:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ulms}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:?set POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET (>=32 bytes)}
+      JWT_LIFETIME_MINUTES: ${JWT_LIFETIME_MINUTES:-60}
+      ULMS_FRONTEND_ORIGIN: ${ULMS_FRONTEND_ORIGIN:?set ULMS_FRONTEND_ORIGIN}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:?set SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@ulms.local}
+      ULMS_MAIL_ENABLED: ${ULMS_MAIL_ENABLED:-true}
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75.0}
+    networks:
+      - ulms
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    container_name: ulms_frontend
+    build:
+      context: src/web/ulms-web
+    image: ulms-frontend:latest
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://backend:8080
+    networks:
+      - ulms
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+
+  caddy:
+    container_name: ulms_caddy
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ulms-caddy-data:/data
+      - ulms-caddy-config:/config
+    environment:
+      ULMS_DOMAIN: ${ULMS_DOMAIN:?set ULMS_DOMAIN (e.g. ulms.example.com)}
+      ULMS_ACME_EMAIL: ${ULMS_ACME_EMAIL:?set ULMS_ACME_EMAIL}
+    networks:
+      - ulms
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
+
+  backup:
+    container_name: ulms_backup
+    image: postgres:18-alpine
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        echo "ulms backup sidecar starting (retention=$${BACKUP_RETENTION_DAYS} days)"
+        while true; do
+          ts=$$(date -u +%Y%m%dT%H%M%SZ)
+          out="/backups/ulms-$$ts.sql.gz"
+          echo "[$$ts] dumping $${POSTGRES_DB} to $$out"
+          PGPASSWORD="$${POSTGRES_PASSWORD}" pg_dump -h postgres -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" --clean --if-exists | gzip > "$$out"
+          find /backups -name "ulms-*.sql.gz" -mtime +$${BACKUP_RETENTION_DAYS} -delete || true
+          sleep 86400
+        done
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-ulms}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+    volumes:
+      - ulms-postgres-backups:/backups
+    networks:
+      - ulms
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  ulms-postgres-data: {}
+  ulms-postgres-backups: {}
+  ulms-caddy-data: {}
+  ulms-caddy-config: {}
+
+networks:
+  ulms:
+    driver: bridge

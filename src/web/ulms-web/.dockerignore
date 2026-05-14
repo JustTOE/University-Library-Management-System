@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.vscode
+.idea
+test-results
+playwright-report
+coverage
+*.log
+.env.local
+.env.development.local
+.env.production.local
+e2e
