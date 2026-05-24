@@ -18,6 +18,10 @@ export function UserSearchForm({
   const t = useTranslations("admin.users");
   const tCommon = useTranslations("common");
   const hasFilters = !!(defaults.q || defaults.role);
+  // Remount the form (and its uncontrolled Input) when filters change; the form
+  // GET-navigates on submit, so reusing the same Input with a new defaultValue
+  // trips Base UI's uncontrolled FieldControl warning.
+  const formKey = `${defaults.q ?? ""}|${defaults.role ?? ""}`;
   const ROLES = [
     { value: "", label: t("anyRole") },
     { value: "STUDENT", label: t("roleStudent") },
@@ -26,6 +30,7 @@ export function UserSearchForm({
   ];
   return (
     <form
+      key={formKey}
       method="GET"
       action={action}
       className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4"

@@ -14,8 +14,14 @@ export function CatalogSearchForm({
 }) {
   const hasFilters =
     !!(defaults.title || defaults.author || defaults.subject);
+  // Remount the form (and its uncontrolled inputs) whenever the filters
+  // change. The form GET-navigates on submit, so the same Input elements would
+  // otherwise be reconciled with a new defaultValue, which Base UI's
+  // FieldControl warns about for uncontrolled fields.
+  const formKey = `${defaults.title ?? ""}|${defaults.author ?? ""}|${defaults.subject ?? ""}`;
   return (
     <form
+      key={formKey}
       method="GET"
       action={action}
       className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4"

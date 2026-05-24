@@ -20,10 +20,13 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     Page<Book> findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(
             String title, String author, Pageable pageable);
 
+    // Params are CAST to string so a NULL bind keeps a varchar type. Without the
+    // cast PostgreSQL types an untyped NULL as bytea, and LOWER(bytea) does not
+    // exist, so the whole statement fails at plan time even for non-null filters.
     @Query("SELECT b FROM Book b WHERE " +
-           "(:title IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
-           "(:author IS NULL OR LOWER(b.author) LIKE LOWER(CONCAT('%', :author, '%'))) AND " +
-           "(:subject IS NULL OR b.subject = :subject)")
+           "(CAST(:title AS string) IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', CAST(:title AS string), '%'))) AND " +
+           "(CAST(:author AS string) IS NULL OR LOWER(b.author) LIKE LOWER(CONCAT('%', CAST(:author AS string), '%'))) AND " +
+           "(CAST(:subject AS string) IS NULL OR b.subject = CAST(:subject AS string))")
     Page<Book> searchByFilters(
             @Param("title") String title,
             @Param("author") String author,
