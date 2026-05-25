@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
+import { AvailabilityBadge } from "@/components/catalog/availability-badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Table,
@@ -84,22 +84,5 @@ export function LibrarianCatalogTable({ books }: { books: BookResponse[] }) {
         </TableBody>
       </Table>
     </div>
-  );
-}
-
-function AvailabilityBadge({
-  available,
-  total,
-}: {
-  available: number;
-  total: number;
-}) {
-  if (available <= 0) {
-    return <Badge variant="outline">0 / {total}</Badge>;
-  }
-  return (
-    <Badge variant={available < total ? "secondary" : "default"}>
-      {available} / {total}
-    </Badge>
   );
 }

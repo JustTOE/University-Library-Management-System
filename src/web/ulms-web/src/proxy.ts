@@ -21,6 +21,12 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const fullPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
 
+  // The root path is public: it serves the landing page to guests and
+  // redirects authenticated users to /catalog (handled in app/page.tsx).
+  if (request.nextUrl.pathname === "/") {
+    return NextResponse.next();
+  }
+
   if (token) {
     const headers = new Headers(request.headers);
     headers.set("x-current-path", fullPath);

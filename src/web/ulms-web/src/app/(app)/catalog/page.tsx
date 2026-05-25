@@ -1,6 +1,6 @@
 import { CatalogPagination } from "@/components/catalog/catalog-pagination";
 import { CatalogSearchForm } from "@/components/catalog/catalog-search-form";
-import { CatalogTable } from "@/components/catalog/catalog-table";
+import { CatalogGrid } from "@/components/catalog/catalog-grid";
 import { ErrorAlert } from "@/components/common/error-alert";
 import { ApiError } from "@/lib/api/client";
 import {
@@ -81,7 +81,7 @@ export default async function CatalogPage({
         <ErrorAlert message={errorMessage} />
       ) : (
         <>
-          <CatalogTable books={books} />
+          <CatalogGrid books={books} />
           <CatalogPagination
             number={pageData?.number ?? 0}
             totalPages={pageData?.totalPages ?? 0}

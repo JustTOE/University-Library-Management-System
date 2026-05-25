@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AvailabilityBadge } from "@/components/catalog/availability-badge";
 import { BookActions } from "@/components/catalog/book-actions";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -61,7 +61,11 @@ export default async function BookDetailPage({
                 <CardDescription>by {book.author}</CardDescription>
               ) : null}
             </div>
-            <AvailabilityBadge available={available} total={total} />
+            <AvailabilityBadge
+              available={available}
+              total={total}
+              variant="verbose"
+            />
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
@@ -106,22 +110,5 @@ function Field({ label, value }: { label: string; value?: string }) {
       </dt>
       <dd className="text-foreground">{value && value.length ? value : "—"}</dd>
     </div>
-  );
-}
-
-function AvailabilityBadge({
-  available,
-  total,
-}: {
-  available: number;
-  total: number;
-}) {
-  if (available <= 0) {
-    return <Badge variant="outline">Unavailable</Badge>;
-  }
-  return (
-    <Badge variant={available < total ? "secondary" : "default"}>
-      {available} of {total} available
-    </Badge>
   );
 }

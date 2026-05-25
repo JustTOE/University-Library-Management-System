@@ -59,7 +59,7 @@ export async function Navbar({
           href="/catalog"
           className="flex items-center gap-2 font-semibold text-foreground"
         >
-          <Library className="size-5" aria-hidden />
+          <Library className="size-5 text-primary" aria-hidden />
           ULMS
         </Link>
 
