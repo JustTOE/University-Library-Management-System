@@ -123,7 +123,7 @@ public class AuthService {
         user.setRole(UserRole.STUDENT);
         user.setActive(true);
 
-        User saved = userService.save(user, request.password());
+        User saved = userService.register(user, request.password());
         eventPublisher.publishEvent(new RegistrationCompletedEvent(saved));
         auditService.record(AuditAction.REGISTER, saved.getId(), saved.getEmail(), "self-registration");
         return UserMapper.toResponse(saved);

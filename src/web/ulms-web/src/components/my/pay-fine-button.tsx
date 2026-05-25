@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useActionState } from "react";
+import { useRouter } from "next/navigation";
 
 import { payFineAction } from "@/app/(app)/my/fines/actions";
 import { initialActionState } from "@/app/(app)/my/fines/state";
@@ -29,18 +30,23 @@ import { formatMoney } from "@/lib/format";
 import { useToastEffect } from "@/lib/hooks/use-toast-effect";
 
 const METHODS = [
-  { value: "CARD", label: "Card" },
-  { value: "ONLINE", label: "Online (bank transfer)" },
+  { value: "ONLINE", label: "Online (card)" },
+  { value: "CARD", label: "Card (tap to pay)" },
   { value: "CASH", label: "Cash" },
 ] as const;
 
 export function PayFineButton({ fine }: { fine: FineResponse }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [method, setMethod] = useState<string>("CARD");
+  const [method, setMethod] = useState<string>("ONLINE");
   const [state, dispatch, pending] = useActionState(
     payFineAction,
     initialActionState,
   );
+
+  // "Online (card)" hands off to the dedicated card-payment page; the in-person
+  // methods (POS tap / cash) are recorded immediately via payFineAction.
+  const isOnline = method === "ONLINE";
   // Keep dialog open on 402 declines so the inline alert can show; close on
   // success or any non-decline error (covered by the default toast).
   useToastEffect(state, {
@@ -69,7 +75,9 @@ export function PayFineButton({ fine }: { fine: FineResponse }) {
         <DialogHeader>
           <DialogTitle>Pay fine</DialogTitle>
           <DialogDescription>
-            Charge {formatMoney(fine.amount)} via the payment gateway.
+            {isOnline
+              ? `Continue to the secure card-payment page to pay ${formatMoney(fine.amount)}.`
+              : `Record a ${formatMoney(fine.amount)} in-person payment.`}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -84,7 +92,7 @@ export function PayFineButton({ fine }: { fine: FineResponse }) {
             </label>
             <Select
               value={method}
-              onValueChange={(value) => setMethod(value ?? "CARD")}
+              onValueChange={(value) => setMethod(value ?? "ONLINE")}
             >
               <SelectTrigger id="payment-method" className="w-full">
                 <SelectValue placeholder="Choose a method" />
@@ -112,9 +120,22 @@ export function PayFineButton({ fine }: { fine: FineResponse }) {
                 </Button>
               }
             />
-            <Button type="submit" disabled={pending}>
-              {pending ? "Processing…" : `Pay ${formatMoney(fine.amount)}`}
-            </Button>
+            {isOnline ? (
+              <Button
+                type="button"
+                disabled={pending}
+                onClick={() => {
+                  setOpen(false);
+                  router.push(`/my/fines/pay?fineId=${fine.id ?? ""}`);
+                }}
+              >
+                Continue to card payment
+              </Button>
+            ) : (
+              <Button type="submit" disabled={pending}>
+                {pending ? "Processing…" : `Pay ${formatMoney(fine.amount)}`}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

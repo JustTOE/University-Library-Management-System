@@ -32,18 +32,18 @@ Set these before running outside the docker-compose defaults:
 | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5431/ulms` | match your Postgres |
 | `SPRING_DATASOURCE_USERNAME` | `db_user` | |
 | `SPRING_DATASOURCE_PASSWORD` | `db_password` | |
-| `JWT_SECRET` | _(none — required, ≥ 32 bytes)_ | HS256 signing key; the app refuses to start in non-`test` profiles without it |
+| `JWT_SECRET` | _(dev fallback; **required in `prod`**, ≥ 32 bytes)_ | HS256 signing key. Local/default profile falls back to a committed dev key for convenience; the `prod` profile has no default, so the app refuses to start without it. |
 | `JWT_LIFETIME_MINUTES` | `60` | Access token TTL |
 | `ULMS_FRONTEND_ORIGIN` | `http://localhost:5173` | CORS allow-list (single origin). Set to `http://localhost:3000` for the Next.js dev server if you ever add direct browser-to-Spring fetches; Server Action / Server Component traffic doesn't go through CORS. |
 
-## Bootstrap admin
+## Bootstrap accounts
 
-Migration `V13__seed_admin.sql` inserts a default admin you can use to get going:
+Two migrations seed default staff accounts you can use to get going:
 
-- email: `admin@ulms.local`
-- password: `admin-change-me-now`
+- `V13__seed_admin.sql` → admin — email `admin@ulms.local`, password `admin-change-me-now`
+- `V19__seed_librarian.sql` → librarian — email `librarian@ulms.local`, password `librarian-change-me-now`
 
-This password is documented (it is **not** a secret) — rotate it on first login of any environment that's reachable from the network. There is no force-reset flow yet, so for now: log in, then `PUT /api/users/{id}` (admin-only) to update the password through the regular create-user code path, or run a one-shot UPDATE on the `users` table with a freshly BCrypt-hashed value.
+These passwords are documented (they are **not** secrets) — rotate them on first login of any environment that's reachable from the network. There is no force-reset flow yet, so for now: log in, then `PUT /api/users/{id}` (admin-only) to update the password through the regular create-user code path, or run a one-shot UPDATE on the `users` table with a freshly BCrypt-hashed value.
 
 ## Auth surface
 
@@ -58,7 +58,7 @@ The frontend lives at `src/web/ulms-web/` and uses Next.js 16 (App Router, Serve
 
 Phase 5 ships the student-facing surface: catalog browse + search (UC4), book detail with borrow / reserve (UC5/UC7), `/my/loans` + renew (UC9), `/my/reservations` + cancel (UC6), `/my/fines` + pay-via-gateway (UC10), `/my/notifications` + acknowledge (UC3). The navbar adds a notifications bell with unread badge and a "My library" dropdown for STUDENT users.
 
-Phase 6 ships the librarian surface: `/librarian/catalog` (UC11 list / create / edit / delete with friendly 409 mapping) and `/librarian/returns` (UC8 lookup by loan id, confirm return). The navbar gains a "Librarian" dropdown for LIBRARIAN / ADMIN users.
+Phase 6 ships the librarian surface: `/librarian/catalog` (UC11 list / create / edit / delete with friendly 409 mapping) and `/librarian/returns` (UC8 outstanding-loans queue across all borrowers, searchable by borrower / book / loan id, confirm return per row). The navbar gains a "Librarian" dropdown for LIBRARIAN / ADMIN users.
 
 Phase 7 ships the admin surface (UC12) plus an a11y pass: `/admin/users` (paginated list with role filter), `/admin/users/new`, `/admin/users/[id]/edit`, and `/admin/users/[id]` with Profile / Loans / Fines tabs; activate / deactivate via AlertDialog. The navbar grows an "Admin" dropdown (ADMIN only). The skip-to-main link, table captions, and `aria-describedby` wiring round out the accessibility audit; axe-core jsdom assertions ship as Vitest specs. (next-intl is wired and `t()` calls thread through the navbar + admin surface, but the project is English-only — single catalog at `src/messages/en.json`.)
 

@@ -83,6 +83,25 @@ class BookControllerTest {
     }
 
     @Test
+    void searchBlankAuthorAndSubjectAreNormalisedToNull() throws Exception {
+        // The HTML search form GET-submits empty fields as ""; those must be
+        // treated as "no filter" (null), not as an exact match on an empty string.
+        Book book = seededBook();
+        Page<Book> page = new PageImpl<>(List.of(book));
+        when(bookService.searchByFilters(eq("Effective Java"), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(page);
+
+        mockMvc.perform(get("/api/books/search")
+                        .param("title", "Effective Java")
+                        .param("author", "")
+                        .param("subject", "  "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].title").value(book.getTitle()));
+
+        verify(bookService).searchByFilters(eq("Effective Java"), eq(null), eq(null), any(Pageable.class));
+    }
+
+    @Test
     void getAllPassesSortPageable() throws Exception {
         Book book = seededBook();
         when(bookService.findAll(any(Pageable.class)))

@@ -24,6 +24,7 @@ import java.util.Optional;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,6 +86,21 @@ class LoanControllerTest {
         mockMvc.perform(get("/api/loans/user/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("User not found: 99"));
+    }
+
+    @Test
+    void reportLostReturnsMappedLoanResponse() throws Exception {
+        TestFixtures.withPrincipal(dev.tmmc.ulms.objects.entities.enums.UserRole.STUDENT, 1);
+        Loan loan = TestFixtures.loan(TestFixtures.user(), TestFixtures.book(2, 0), LoanStatus.LOST, LocalDate.now().minusDays(3));
+        loan.setId(7);
+        LoanResponse response = LoanMapper.toResponse(loan);
+
+        when(loanService.reportLostAsResponse(7)).thenReturn(response);
+
+        mockMvc.perform(put("/api/loans/7/report-lost"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(7))
+                .andExpect(jsonPath("$.status").value("LOST"));
     }
 
     @Test

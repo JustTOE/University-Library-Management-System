@@ -186,4 +186,23 @@ class SecurityIntegrationTest {
                 .andExpect(jsonPath("$.role").value("ADMIN"))
                 .andExpect(jsonPath("$.token").exists());
     }
+
+    @Test
+    void seededLibrarianCanLogIn() throws Exception {
+        // Re-create the librarian row we just wiped — exercises that the V19 hash matches the documented password.
+        User librarian = new User();
+        librarian.setName("Default Librarian");
+        librarian.setEmail("librarian@ulms.local");
+        librarian.setRole(UserRole.LIBRARIAN);
+        librarian.setPasswordHash("$2a$10$b/Tfn2b5wBurjq1hlc9Fh.UNTK.dTFHbQjccnjlXuFfvx4IzPXd2m");
+        librarian.setActive(true);
+        userRepository.saveAndFlush(librarian);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"librarian@ulms.local\",\"password\":\"librarian-change-me-now\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("LIBRARIAN"))
+                .andExpect(jsonPath("$.token").exists());
+    }
 }

@@ -42,4 +42,12 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     @Transactional
     @Query("UPDATE Book b SET b.availableCopies = b.availableCopies + 1 WHERE b.id = :id")
     int incrementAvailable(@Param("id") Integer id);
+
+    // Permanently removes one physical copy from inventory (used when a borrowed
+    // copy is reported lost). The copy was already out, so availableCopies is
+    // untouched — only the total shrinks.
+    @Modifying
+    @Transactional
+    @Query("UPDATE Book b SET b.totalCopies = b.totalCopies - 1 WHERE b.id = :id AND b.totalCopies > 0")
+    int decrementTotal(@Param("id") Integer id);
 }

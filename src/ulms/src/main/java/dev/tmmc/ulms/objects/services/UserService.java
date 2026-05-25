@@ -60,6 +60,18 @@ public class UserService {
         return saved;
     }
 
+    /**
+     * Persist a brand-new user with a hashed password but without writing a
+     * USER_CREATE audit row. Used by the public self-registration path, which
+     * records its own canonical REGISTER entry — avoids a duplicate, null-actor
+     * USER_CREATE row since registration has no authenticated actor.
+     */
+    @Transactional
+    public User register(User user, String rawPassword) {
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        return userRepository.save(user);
+    }
+
     @Transactional
     public User save(User user) {
         boolean isNew = user.getId() == null;
@@ -68,6 +80,35 @@ public class UserService {
                 isNew ? AuditAction.USER_CREATE : AuditAction.USER_UPDATE,
                 "userId=" + saved.getId() + " email=" + saved.getEmail()
         );
+        return saved;
+    }
+
+    /**
+     * Update an existing user's editable profile fields on the managed row,
+     * preserving account state the editor does not own — {@code active},
+     * {@code failedLoginAttempts}, {@code lockedUntil}. The password is only
+     * re-hashed when a non-blank {@code rawPassword} is supplied; a null/blank
+     * value keeps the existing hash so a profile edit cannot lock a user out.
+     */
+    @Transactional
+    public User update(Integer id, String name, String email, String universityId,
+                       String staffId, String phone,
+                       dev.tmmc.ulms.objects.entities.enums.UserRole role,
+                       String rawPassword) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new dev.tmmc.ulms.objects.exceptions.ResourceNotFoundException("User not found: " + id));
+        user.setName(name);
+        user.setEmail(email);
+        user.setUniversityId(universityId);
+        user.setStaffId(staffId);
+        user.setPhone(phone);
+        user.setRole(role);
+        if (rawPassword != null && !rawPassword.isBlank()) {
+            user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        }
+        User saved = userRepository.save(user);
+        auditService.record(AuditAction.USER_UPDATE,
+                "userId=" + saved.getId() + " email=" + saved.getEmail());
         return saved;
     }
 

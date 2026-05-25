@@ -58,8 +58,17 @@ public class BookController {
                                      @RequestParam(required = false) String author,
                                      @RequestParam(required = false) String subject,
                                      Pageable pageable) {
-        return bookService.searchByFilters(title, author, subject, pageable)
+        // A blank field from the HTML search form arrives as "" rather than being
+        // omitted. The query treats only NULL as "filter unset", so an empty
+        // subject would become an exact match on '' and drop every row. Normalise
+        // blank/whitespace-only params to null so they are ignored.
+        return bookService.searchByFilters(
+                        blankToNull(title), blankToNull(author), blankToNull(subject), pageable)
                 .map(BookMapper::toResponse);
+    }
+
+    private static String blankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value;
     }
 
     @PostMapping

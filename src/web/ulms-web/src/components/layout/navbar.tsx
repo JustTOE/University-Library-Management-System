@@ -107,6 +107,9 @@ export async function Navbar({
               <DropdownMenuItem render={<Link href="/admin/users" />}>
                 {t("adminItems.users")}
               </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/admin/debug" />}>
+                {t("adminItems.debug")}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : null}

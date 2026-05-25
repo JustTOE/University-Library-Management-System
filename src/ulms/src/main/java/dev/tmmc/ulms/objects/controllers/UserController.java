@@ -1,6 +1,7 @@
 package dev.tmmc.ulms.objects.controllers;
 
 import dev.tmmc.ulms.objects.dto.request.CreateUserRequest;
+import dev.tmmc.ulms.objects.dto.request.validation.OnCreate;
 import dev.tmmc.ulms.objects.dto.response.UserExportResponse;
 import dev.tmmc.ulms.objects.dto.response.UserHistoryResponse;
 import dev.tmmc.ulms.objects.dto.response.UserResponse;
@@ -16,7 +17,9 @@ import dev.tmmc.ulms.objects.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -95,7 +98,7 @@ public class UserController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a user (any role, admin only)")
-    public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
+    public UserResponse create(@Validated({Default.class, OnCreate.class}) @RequestBody CreateUserRequest request) {
         User user = UserMapper.toEntity(request);
         return UserMapper.toResponse(userService.save(user, request.password()));
     }
@@ -104,11 +107,16 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN') or principal.userId == #id")
     @Operation(summary = "Update a user (self or admin only)")
     public UserResponse update(@PathVariable Integer id, @Valid @RequestBody CreateUserRequest request) {
-        userService.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
-        User user = UserMapper.toEntity(request);
-        user.setId(id);
-        return UserMapper.toResponse(userService.save(user, request.password()));
+        User saved = userService.update(
+                id,
+                request.name(),
+                request.email(),
+                request.universityId(),
+                request.staffId(),
+                request.phone(),
+                request.role(),
+                request.password());
+        return UserMapper.toResponse(saved);
     }
 
     @DeleteMapping("/{id}")

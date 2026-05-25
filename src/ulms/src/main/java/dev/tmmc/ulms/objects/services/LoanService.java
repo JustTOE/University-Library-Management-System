@@ -20,6 +20,7 @@ import dev.tmmc.ulms.objects.repositories.LoanRepository;
 import dev.tmmc.ulms.objects.repositories.ReservationRepository;
 import dev.tmmc.ulms.objects.repositories.UserRepository;
 import dev.tmmc.ulms.security.OwnershipChecker;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,16 +46,21 @@ public class LoanService {
     private final FineRepository fineRepository;
     private final ReservationRepository reservationRepository;
 
+    // Flat replacement fee for a lost book; configurable via ulms.fine.lost-book-fee.
+    private final BigDecimal lostBookFee;
+
     public LoanService(LoanRepository loanRepository,
                        BookRepository bookRepository,
                        UserRepository userRepository,
                        FineRepository fineRepository,
-                       ReservationRepository reservationRepository) {
+                       ReservationRepository reservationRepository,
+                       @Value("${ulms.fine.lost-book-fee:50.00}") BigDecimal lostBookFee) {
         this.loanRepository = loanRepository;
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
         this.fineRepository = fineRepository;
         this.reservationRepository = reservationRepository;
+        this.lostBookFee = lostBookFee;
     }
 
     @Transactional
@@ -132,6 +138,52 @@ public class LoanService {
     @Transactional
     public LoanResponse returnBookAsResponse(Integer loanId) {
         return LoanMapper.toResponse(returnBook(loanId));
+    }
+
+    /**
+     * Reports a borrowed book as lost. Raises a single fine combining the flat
+     * replacement fee with any accrued overdue amount, marks the loan LOST, and
+     * permanently removes the copy from inventory (totalCopies--). The copy was
+     * already out, so availableCopies is left untouched. The resulting unpaid
+     * fine blocks new borrows until cleared (existing borrow/renew checks).
+     */
+    @Transactional
+    public Loan reportLost(Integer loanId) {
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() -> new ResourceNotFoundException("Loan not found: " + loanId));
+
+        OwnershipChecker.requireOwnerOrStaff(loan.getUser().getId());
+
+        if (loan.getStatus() == LoanStatus.RETURNED || loan.getStatus() == LoanStatus.LOST) {
+            throw new LoanStateException("Loan is already closed.");
+        }
+
+        BigDecimal amount = lostBookFee;
+        LocalDate dueDate = loan.getDue_date().toLocalDate();
+        if (LocalDate.now().isAfter(dueDate)) {
+            long daysOverdue = LocalDate.now().toEpochDay() - dueDate.toEpochDay();
+            amount = amount.add(FINE_PER_DAY.multiply(BigDecimal.valueOf(daysOverdue)));
+        }
+
+        Fine fine = new Fine();
+        fine.setFineId(UUID.randomUUID().toString());
+        fine.setLoan(loan);
+        fine.setAmount(amount);
+        fine.setCalculated_date(Date.valueOf(LocalDate.now()));
+        fine.setStatus(FineStatus.UNPAID);
+        fineRepository.save(fine);
+
+        loan.setStatus(LoanStatus.LOST);
+        if (loan.getBook() != null) {
+            bookRepository.decrementTotal(loan.getBook().getId());
+        }
+
+        return loanRepository.save(loan);
+    }
+
+    @Transactional
+    public LoanResponse reportLostAsResponse(Integer loanId) {
+        return LoanMapper.toResponse(reportLost(loanId));
     }
 
     @Transactional

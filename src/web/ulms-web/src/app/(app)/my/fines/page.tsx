@@ -9,6 +9,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -70,6 +71,17 @@ export default async function MyFinesPage() {
             {formatMoney(total)}
           </p>
         </CardContent>
+        {total > 0 ? (
+          <CardFooter>
+            <Link
+              href="/my/fines/pay"
+              className={buttonVariants()}
+              data-testid="pay-online"
+            >
+              Pay online
+            </Link>
+          </CardFooter>
+        ) : null}
       </Card>
 
       {fines.length === 0 ? (

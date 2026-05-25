@@ -49,6 +49,13 @@ public class LoanController {
         return loanService.renewLoanAsResponse(id);
     }
 
+    @PutMapping("/{id}/report-lost")
+    @PreAuthorize("hasAnyRole('STUDENT','LIBRARIAN','ADMIN')")
+    @Operation(summary = "Report a borrowed book as lost (owner or staff); raises a replacement fee")
+    public LoanResponse reportLost(@PathVariable Integer id) {
+        return loanService.reportLostAsResponse(id);
+    }
+
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN') or principal.userId == #userId")
     @Operation(summary = "List a user's loans with book and user details")

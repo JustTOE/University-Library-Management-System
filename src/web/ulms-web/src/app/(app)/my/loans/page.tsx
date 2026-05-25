@@ -4,6 +4,7 @@ import { ErrorAlert } from "@/components/common/error-alert";
 import { EmptyState } from "@/components/common/empty-state";
 import { LoanStatusBadge } from "@/components/common/status-pill";
 import { RenewLoanForm } from "@/components/my/renew-loan-form";
+import { ReportLostButton } from "@/components/my/report-lost-button";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -21,6 +22,12 @@ import { daysUntil, formatDateOnly } from "@/lib/format";
 
 const MAX_RENEWALS = 3;
 const RENEWABLE_STATES = new Set<LoanResponse["status"]>(["ACTIVE", "RENEWED"]);
+// A loan is still "open" (book physically out) until returned or written off.
+const OPEN_STATES = new Set<LoanResponse["status"]>([
+  "ACTIVE",
+  "RENEWED",
+  "OVERDUE",
+]);
 
 export default async function MyLoansPage() {
   const session = await readSession();
@@ -83,6 +90,7 @@ function LoanRow({ loan }: { loan: LoanResponse }) {
   const renewals = loan.renewalCount ?? 0;
   const renewable =
     RENEWABLE_STATES.has(loan.status) && renewals < MAX_RENEWALS;
+  const reportable = OPEN_STATES.has(loan.status) && Boolean(loan.id);
 
   return (
     <TableRow>
@@ -132,8 +140,16 @@ function LoanRow({ loan }: { loan: LoanResponse }) {
         <LoanStatusBadge status={loan.status} />
       </TableCell>
       <TableCell className="text-right">
-        {renewable && loan.id ? (
-          <RenewLoanForm loanId={loan.id} />
+        {renewable || reportable ? (
+          <div className="flex items-center justify-end gap-2">
+            {renewable && loan.id ? <RenewLoanForm loanId={loan.id} /> : null}
+            {reportable && loan.id ? (
+              <ReportLostButton
+                loanId={loan.id}
+                bookTitle={loan.bookTitle ?? `Book #${loan.bookId ?? loan.id}`}
+              />
+            ) : null}
+          </div>
         ) : (
           <span className="text-xs text-muted-foreground">—</span>
         )}

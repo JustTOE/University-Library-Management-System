@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { CreateUserRequest } from "@/lib/api/users";
+import type { CreateUserRequest, UpdateUserRequest } from "@/lib/api/users";
 
 function parseOptionalString(raw: FormDataEntryValue | null): string | undefined {
   if (raw === null) return undefined;
@@ -21,14 +21,20 @@ function parseRole(raw: FormDataEntryValue | null): CreateUserRequest["role"] {
 }
 
 /**
- * Builds the CreateUserRequest body from a FormData payload. On edit, when the
- * password field is left blank, we still send the empty string — the backend's
- * userService.save accepts it and skips re-hashing. (We could omit it via an
- * undefined value, but the OpenAPI contract types password as required, so an
- * empty string keeps the type happy without changing semantics on the JVM side.)
+ * Builds the CreateUserRequest body from a FormData payload. On edit, a blank
+ * password field is omitted entirely so the backend keeps the existing hash
+ * (the PUT /api/users/{id} update path treats a missing password as "unchanged"
+ * and only re-hashes when a new value is supplied). On create the password is
+ * always sent and is required server-side.
  */
-export function readUserFormBody(formData: FormData, mode: "create" | "edit"): CreateUserRequest {
+export function readUserFormBody(formData: FormData, mode: "create"): CreateUserRequest;
+export function readUserFormBody(formData: FormData, mode: "edit"): UpdateUserRequest;
+export function readUserFormBody(
+  formData: FormData,
+  mode: "create" | "edit",
+): CreateUserRequest | UpdateUserRequest {
   const passwordRaw = String(formData.get("password") ?? "").trim();
+  const includePassword = mode === "create" || passwordRaw !== "";
   return {
     name: parseRequiredString(formData.get("name")),
     email: parseRequiredString(formData.get("email")),
@@ -36,6 +42,6 @@ export function readUserFormBody(formData: FormData, mode: "create" | "edit"): C
     staffId: parseOptionalString(formData.get("staffId")),
     phone: parseOptionalString(formData.get("phone")),
     role: parseRole(formData.get("role")),
-    password: mode === "create" ? passwordRaw : passwordRaw,
+    ...(includePassword ? { password: passwordRaw } : {}),
   };
 }

@@ -17,12 +17,14 @@ import dev.tmmc.ulms.objects.repositories.ReservationRepository;
 import dev.tmmc.ulms.objects.repositories.UserRepository;
 import dev.tmmc.ulms.objects.services.LoanService;
 import dev.tmmc.ulms.support.TestFixtures;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -57,6 +59,13 @@ class LoanServiceTest {
 
     @InjectMocks
     private LoanService loanService;
+
+    @BeforeEach
+    void setLostBookFee() {
+        // @InjectMocks leaves the BigDecimal @Value field null (no matching mock);
+        // set it to the configured default so reportLost math is exercised.
+        ReflectionTestUtils.setField(loanService, "lostBookFee", new BigDecimal("50.00"));
+    }
 
     @Test
     void borrowBookCreatesLoanWhenUserIsEligible() {
@@ -210,6 +219,62 @@ class LoanServiceTest {
                 .thenReturn(List.of(TestFixtures.fine(loan, FineStatus.UNPAID, BigDecimal.ONE)));
 
         assertThrows(UnpaidFinesException.class, () -> loanService.renewLoan(15));
+        verify(loanRepository, never()).save(any(Loan.class));
+    }
+
+    @Test
+    void reportLostChargesFlatFeeWhenNotOverdue() {
+        User user = TestFixtures.user();
+        Book book = TestFixtures.book(3, 0);
+        book.setId(4);
+        Loan loan = TestFixtures.loan(user, book, LoanStatus.ACTIVE, LocalDate.now().plusDays(2));
+        loan.setId(9);
+
+        when(loanRepository.findById(9)).thenReturn(Optional.of(loan));
+        when(loanRepository.save(any(Loan.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(fineRepository.save(any(Fine.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Loan result = loanService.reportLost(9);
+
+        assertEquals(LoanStatus.LOST, result.getStatus());
+        ArgumentCaptor<Fine> fineCaptor = ArgumentCaptor.forClass(Fine.class);
+        verify(fineRepository).save(fineCaptor.capture());
+        assertEquals(new BigDecimal("50.00"), fineCaptor.getValue().getAmount());
+        assertEquals(FineStatus.UNPAID, fineCaptor.getValue().getStatus());
+        verify(bookRepository).decrementTotal(4);
+        verify(bookRepository, never()).incrementAvailable(4);
+    }
+
+    @Test
+    void reportLostAddsOverdueAmountToFlatFee() {
+        User user = TestFixtures.user();
+        Book book = TestFixtures.book(3, 0);
+        book.setId(4);
+        Loan loan = TestFixtures.loan(user, book, LoanStatus.OVERDUE, LocalDate.now().minusDays(3));
+        loan.setId(9);
+
+        when(loanRepository.findById(9)).thenReturn(Optional.of(loan));
+        when(loanRepository.save(any(Loan.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(fineRepository.save(any(Fine.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        loanService.reportLost(9);
+
+        ArgumentCaptor<Fine> fineCaptor = ArgumentCaptor.forClass(Fine.class);
+        verify(fineRepository).save(fineCaptor.capture());
+        // €50 flat + €1/day * 3 days overdue = €53.00
+        assertEquals(new BigDecimal("53.00"), fineCaptor.getValue().getAmount());
+        verify(bookRepository).decrementTotal(4);
+    }
+
+    @Test
+    void reportLostRejectsAlreadyClosedLoans() {
+        Loan loan = TestFixtures.loan(TestFixtures.user(), TestFixtures.book(1, 0), LoanStatus.RETURNED, LocalDate.now());
+        loan.setId(9);
+
+        when(loanRepository.findById(9)).thenReturn(Optional.of(loan));
+
+        assertThrows(LoanStateException.class, () -> loanService.reportLost(9));
+        verify(fineRepository, never()).save(any(Fine.class));
         verify(loanRepository, never()).save(any(Loan.class));
     }
 }

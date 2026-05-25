@@ -5,6 +5,13 @@ import type { components } from "./types";
 
 export type UserResponse = components["schemas"]["UserResponse"];
 export type CreateUserRequest = components["schemas"]["CreateUserRequest"];
+/**
+ * Update payload: same as create but with an optional password. A blank/omitted
+ * password tells the backend to keep the user's existing one.
+ */
+export type UpdateUserRequest = Omit<CreateUserRequest, "password"> & {
+  password?: string;
+};
 export type UserHistoryResponse = components["schemas"]["UserHistoryResponse"];
 export type UserRole = NonNullable<UserResponse["role"]>;
 
@@ -50,7 +57,7 @@ export function createUser(body: CreateUserRequest, opts: FetchOptions = {}) {
 
 export function updateUser(
   id: number,
-  body: CreateUserRequest,
+  body: UpdateUserRequest,
   opts: FetchOptions = {},
 ) {
   return apiFetch<UserResponse>(`/api/users/${id}`, {

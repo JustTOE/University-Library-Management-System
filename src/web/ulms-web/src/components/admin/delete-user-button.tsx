@@ -28,7 +28,6 @@ export function DeleteUserButton({
   name: string;
 }) {
   const t = useTranslations("admin.users");
-  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [state, dispatch, pending] = useActionState(
     deleteUserAction,
@@ -47,7 +46,7 @@ export function DeleteUserButton({
             disabled={pending}
             data-testid={`delete-user-${userId}`}
           >
-            {tCommon("delete")}
+            {t("anonymiseAction")}
           </Button>
         }
       />

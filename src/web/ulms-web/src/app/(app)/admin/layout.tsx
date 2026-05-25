@@ -15,7 +15,10 @@ export default async function AdminLayout({
   const t = await getTranslations("admin");
   const tNav = await getTranslations("navbar.adminItems");
 
-  const NAV = [{ href: "/admin/users", label: tNav("users") }];
+  const NAV = [
+    { href: "/admin/users", label: tNav("users") },
+    { href: "/admin/debug", label: tNav("debug") },
+  ];
 
   return (
     <div className="flex flex-col gap-6">

@@ -57,18 +57,15 @@ export async function deleteUserAction(
   const userId = Number(formData.get("userId"));
   const name = String(formData.get("name") ?? "this user");
   if (!Number.isFinite(userId) || userId <= 0) {
-    return { status: "error", message: "Could not delete this user." };
+    return { status: "error", message: "Could not anonymise this user." };
   }
 
   try {
     await deleteUser(userId, { token: session.token });
   } catch (error) {
-    return apiErrorToActionState(
-      error,
-      "User cannot be deleted while they have loans or fines on record.",
-    );
+    return apiErrorToActionState(error, "Could not anonymise this user.");
   }
 
   revalidatePath("/admin/users");
-  return { status: "success", message: `Deleted ${name}.` };
+  return { status: "success", message: `Anonymised ${name}.` };
 }

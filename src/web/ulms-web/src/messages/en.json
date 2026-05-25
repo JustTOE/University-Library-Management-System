@@ -36,7 +36,8 @@
       "returns": "Returns"
     },
     "adminItems": {
-      "users": "Users"
+      "users": "Users",
+      "debug": "Debug"
     }
   },
   "auth": {
@@ -96,10 +97,11 @@
       "deactivateConfirmDescription": "The user will be unable to sign in until reactivated.",
       "reactivateConfirmTitle": "Reactivate {name}?",
       "reactivateConfirmDescription": "The user will be able to sign in again.",
-      "deleteConfirmTitle": "Delete {name}?",
-      "deleteConfirmDescription": "This permanently deletes the user record and cannot be undone. Users with loans or fines on record cannot be deleted.",
+      "deleteConfirmTitle": "Anonymise {name}?",
+      "deleteConfirmDescription": "This clears the user's personal data and deactivates the account. The record and its loan, fine, and payment history are kept for accounting. This cannot be undone.",
       "keepUser": "Keep user",
-      "deleteUser": "Delete user",
+      "deleteUser": "Anonymise user",
+      "anonymiseAction": "Anonymise",
       "tabProfile": "Profile",
       "tabLoans": "Loans",
       "tabFines": "Fines",

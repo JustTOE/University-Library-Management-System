@@ -166,7 +166,7 @@ class AuthServiceTest {
                 "Bob", "bob@example.com", "U-BOB", "0700000000", "secret-pass"
         );
         when(userRepository.findByEmail(request.email())).thenReturn(Optional.empty());
-        when(userService.save(any(User.class), any(String.class))).thenAnswer(inv -> {
+        when(userService.register(any(User.class), any(String.class))).thenAnswer(inv -> {
             User user = inv.getArgument(0);
             user.setId(42);
             return user;
@@ -177,7 +177,10 @@ class AuthServiceTest {
         assertEquals(42, response.id());
         assertEquals("Bob", response.name());
         assertEquals(UserRole.STUDENT, response.role());
-        verify(userService, times(1)).save(any(User.class), any(String.class));
+        // Registration must persist via the non-audited register() path, never
+        // the admin save() (which would write a duplicate, null-actor USER_CREATE).
+        verify(userService, times(1)).register(any(User.class), any(String.class));
+        verify(userService, never()).save(any(User.class), any(String.class));
         ArgumentCaptor<RegistrationCompletedEvent> eventCaptor =
                 ArgumentCaptor.forClass(RegistrationCompletedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
